@@ -1,0 +1,63 @@
+# Technical Architecture Specification: Franklin County Safety Map
+
+## 1. System Overview
+The platform is a **Hybrid Geospatial Aggregator**. It uses a persistent Python "Brain" to refine unstructured data and a Node.js/Vercel "Face" to deliver that data to the user via a high-performance map.
+
+## 2. Technology Stack
+
+### 2.1 The Stack
+*   **Frontend:** Next.js + Tailwind CSS + **Mapbox GL JS** $\rightarrow$ Hosted on **Vercel**.
+*   **The API Layer:** Node.js (Next.js API Routes) $\rightarrow$ Hosted on **Vercel**.
+*   **The Engine (The Brain):** FastAPI (Python) + Background Workers $\rightarrow$ Hosted on **Railway.app**.
+*   **Data Core:** **Supabase (PostgreSQL + PostGIS)**. PostGIS is mandatory for spatial queries.
+
+### 2.2 Hosting Blueprint
+1.  **Vercel:** Serves the UI and lightweight API requests.
+2.  **Railway:** Runs a persistent Python process that never sleeps. This worker handles the "Listen, Parse, and Store" loop.
+3.  **Supabase:** The central state. All workers write here; the UI reads from here.
+
+---
+
+## 3. The Data Refinery Pipeline
+
+Since we are aggregating from wildly different sources, we use a "Pipe" architecture.
+
+### 3.1 The "AI-Listener" Pipeline (Police/Crime)
+This is the most complex part of the system.
+`Broadcastify Audio Stream` $\rightarrow$ `PyAudio/FFmpeg` $\rightarrow$ `OpenAI Whisper (STT)` $\rightarrow$ `GPT-4o (NER Extraction)` $\rightarrow$ `Supabase`
+
+*   **Audio Capture:** Worker captures audio chunks from the citywide police feed.
+*   **Transcription:** Whisper converts audio to text.
+*   **Entity Extraction:** LLM identifies: `Incident Type`, `Location/Cross-streets`, `Priority`.
+*   **Geocoding:** Convert "Intersection of High St and Broad St" into `(lat, lng)` using a geocoding service.
+
+### 3.2 The "Official" Pipeline (Traffic/Transit)
+`OHGO API / COTA GTFS-RT` $\rightarrow$ `Python Worker` $\rightarrow$ `PostGIS` $\rightarrow$ `Vercel UI`
+
+*   **Transit:** Protobuf parsing of COTA feeds $\rightarrow$ Update `bus_positions` table.
+*   **Traffic:** Polling OHGO API $\rightarrow$ Update `traffic_incidents` and `camera_metadata` tables.
+
+### 3.3 The "Web-Scrape" Pipeline (Fire/EMS)
+`PulsePoint Web` $\rightarrow$ `Python Worker (BeautifulSoup/Playwright)` $\rightarrow$ `Supabase`
+
+*   **Polling:** Worker checks the PulsePoint web interface for new incident IDs.
+*   **Parsing:** Extracts location and dispatch status.
+
+---
+
+## 4. Internal API Design
+
+### 4.1 The Map Feed (`GET /api/map/active`)
+Provides a consolidated JSON of all current events.
+*   **Response:** `[ { layer: "fire", type: "medical", coords: [lat, lng], desc: "..." }, { layer: "transit", type: "bus", ... } ]`
+
+### 4.2 The Camera Proxy (`GET /api/camera/{id}`)
+Proxies the request to the OHGO API to fetch the latest image without exposing the API key to the frontend.
+
+---
+
+## 5. Database Schema (PostGIS)
+*   **`incidents` Table:** `id, type, layer (police/fire/ems), geometry (Point), description, timestamp, status`.
+*   **`cameras` Table:** `id, location (Point), current_image_url, last_updated`.
+*   **`bus_positions` Table:** `bus_id, route_id, geometry (Point), last_seen`.
+*   **`structural_zones` Table:** `zone_id, geometry (Polygon), label`.

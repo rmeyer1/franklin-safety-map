@@ -3,7 +3,9 @@
 This document outlines the LLM strategy for the "AI-Listener" pipeline, which converts raw radio transcriptions into structured map markers.
 
 ## 1. Objective
-The goal is to achieve high accuracy in Named Entity Recognition (NER) for public safety dispatches (Incident Type, Location, Priority) while minimizing inference cost and latency.
+The goal is to achieve high accuracy in Named Entity Recognition (NER) for public safety dispatches (Incident Type, Location, Priority) while minimizing inference cost and latency. 
+
+**Crucial Requirement:** To avoid local hardware bottlenecks, all models must be accessed via **Ollama Cloud** (or a hosted Ollama API provider). No local model execution is required.
 
 ## 2. Recommended Model Tiering
 

@@ -9,6 +9,7 @@ The platform is a **Hybrid Geospatial Aggregator**. It uses a persistent Python 
 *   **Frontend:** Next.js + Tailwind CSS + **Mapbox GL JS** $\rightarrow$ Hosted on **Vercel**.
 *   **The API Layer:** Node.js (Next.js API Routes) $\rightarrow$ Hosted on **Vercel**.
 *   **The Engine (The Brain):** FastAPI (Python) + Background Workers $\rightarrow$ Hosted on **Railway.app**.
+*   **LLM Intelligence:** Accessed via **Ollama Cloud API** (Remote Inference). The engine sends requests to the cloud provider to avoid local hardware constraints.
 *   **Data Core:** **Supabase (PostgreSQL + PostGIS)**. PostGIS is mandatory for spatial queries.
 
 ### 2.2 Hosting Blueprint

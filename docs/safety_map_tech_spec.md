@@ -24,13 +24,17 @@ The platform is a **Hybrid Geospatial Aggregator**. It uses a persistent Python 
 Since we are aggregating from wildly different sources, we use a "Pipe" architecture.
 
 ### 3.1 The "AI-Listener" Pipeline (Police/Crime)
-This is the most complex part of the system.
-`Broadcastify Audio Stream` $\rightarrow$ `PyAudio/FFmpeg` $\rightarrow$ `OpenAI Whisper (STT)` $\rightarrow$ `GPT-4o (NER Extraction)` $\rightarrow$ `Supabase`
+This pipeline transforms raw radio waves into structured map markers using a self-hosted SDR (Software Defined Radio) stack to bypass restrictive API gateways.
 
-*   **Audio Capture:** Worker captures audio chunks from the citywide police feed.
-*   **Transcription:** Whisper converts audio to text.
-*   **Entity Extraction:** LLM identifies: `Incident Type`, `Location/Cross-streets`, `Priority`.
-*   **Geocoding:** Convert "Intersection of High St and Broad St" into `(lat, lng)` using a geocoding service.
+**The Hardware/Software Stack:**
+`RTL-SDR V4 Dongle` $\rightarrow$ `SDRTrunk (Decoding)` $\rightarrow$ `Rdio Scanner (Local API)` $\rightarrow$ `Railway Worker` $\rightarrow$ `Whisper/LLM` $\rightarrow$ `Supabase`
+
+*   **Audio Capture (The Node):** A dedicated local node (e.g., Raspberry Pi or Mini-PC) runs **SDRTrunk** to decode the Franklin County P25 trunked system.
+*   **The Local Bridge:** **Rdio Scanner** is used to ingest the decoded audio and expose a local REST API that provides individual audio files for each "call" or "transmission."
+*   **The Polling Worker:** The Railway worker polls the Rdio Scanner API for new audio files.
+*   **Transcription:** Audio chunks are sent to **OpenAI Whisper** (via API/Cloud) for Speech-to-Text conversion.
+*   **Entity Extraction:** The transcription is sent to **Ollama Cloud (Llama 3.1 8B)** to extract `Incident Type`, `Location`, and `Priority` in JSON format.
+*   **Geocoding:** Extracted text locations are converted to coordinates and pushed to **Supabase (PostGIS)**.
 
 ### 3.2 The "Official" Pipeline (Traffic/Transit)
 `OHGO API / COTA GTFS-RT` $\rightarrow$ `Python Worker` $\rightarrow$ `PostGIS` $\rightarrow$ `Vercel UI`

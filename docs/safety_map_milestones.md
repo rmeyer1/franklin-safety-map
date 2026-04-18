@@ -2,21 +2,16 @@
 
 This document provides a structured execution path for the development team. The project is broken into five phases, moving from infrastructure to "Intelligence."
 
-## 🟢 Phase 1: Infrastructure & Foundation (The Plumbing)
-*Goal: Establish the cloud environment and the data "sink."*
+## 🟢 Phase 0: Hardware & Local Setup
+*Goal: Establish the physical audio capture layer.*
 
-- [ ] **Supabase Setup:** 
-    - [ ] Initialize Supabase project.
-    - [ ] Enable **PostGIS extension** on the database.
-    - [ ] Create tables: `incidents`, `traffic_cameras`, `bus_positions`, and `structural_zones`.
-- [ ] **Railway Deployment:**
-    - [ ] Deploy a base FastAPI server.
-    - [ ] Set up a persistent background worker process.
-    - [ ] Configure environment variables for Supabase and API keys.
-- [ ] **Vercel UI Baseline:**
-    - [ ] Initialize Next.js project with Tailwind CSS.
-    - [ ] Integrate Mapbox GL JS and render a base map of Franklin County.
-- [ ] **Connectivity Test:** Verify a "Hello World" data flow: `Railway Worker` $\rightarrow$ `Supabase` $\rightarrow$ `Vercel UI`.
+- [ ] **Hardware Acquisition:** Purchase and configure RTL-SDR V4 Dongle and antenna.
+- [ ] **SDRTrunk Configuration:** Install SDRTrunk on a persistent local node; configure for Franklin County P25 system.
+- [ ] **Rdio Scanner Setup:** Deploy Rdio Scanner to expose the local audio API.
+- [ ] **Connectivity Test:** Verify that a local API call can retrieve a recent audio file from a police dispatch.
+
+## 🟡 Phase 1: Infrastructure & Foundation (The Plumbing)
+... (keep existing)
 
 ## 🟡 Phase 2: The Official Data Pipeline (Easy Wins)
 *Goal: Get the reliable, API-driven data onto the map.*

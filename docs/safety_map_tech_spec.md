@@ -24,17 +24,24 @@ The platform is a **Hybrid Geospatial Aggregator**. It uses a persistent Python 
 Since we are aggregating from wildly different sources, we use a "Pipe" architecture.
 
 ### 3.1 The "AI-Listener" Pipeline (Police/Crime)
-This pipeline transforms raw radio waves into structured map markers using a self-hosted SDR (Software Defined Radio) stack to bypass restrictive API gateways.
+This pipeline transforms raw radio waves into structured map markers using a self-hosted SDR (Software Defined Radio) stack. The project must rely on infrastructure we control rather than polling undocumented or restricted third-party scanner APIs.
 
 **The Hardware/Software Stack:**
-`RTL-SDR V4 Dongle` $\rightarrow$ `SDRTrunk (Decoding)` $\rightarrow$ `Rdio Scanner (Local API)` $\rightarrow$ `Railway Worker` $\rightarrow$ `Whisper/LLM` $\rightarrow$ `Supabase`
+`RTL-SDR V4 Dongle` $\rightarrow$ `SDRTrunk (Decoding)` $\rightarrow$ `Rdio Scanner (Ingest + Operator UI)` $\rightarrow$ `Project-Controlled Call Index / OpenMHz-Compatible Backend` $\rightarrow$ `Railway Worker` $\rightarrow$ `OpenAI STT + LLM Extraction` $\rightarrow$ `Supabase`
 
 *   **Audio Capture (The Node):** A dedicated local node (e.g., Raspberry Pi or Mini-PC) runs **SDRTrunk** to decode the Franklin County P25 trunked system.
-*   **The Local Bridge:** **Rdio Scanner** is used to ingest the decoded audio and expose a local REST API that provides individual audio files for each "call" or "transmission."
-*   **The Polling Worker:** The Railway worker polls the Rdio Scanner API for new audio files.
-*   **Transcription:** Audio chunks are sent to **OpenAI Whisper** (via API/Cloud) for Speech-to-Text conversion.
+*   **Ingest + Monitoring:** **Rdio Scanner** is used to ingest decoded audio files and provide an operator-facing scanner UI. It should be treated as an ingest and monitoring component, not as the long-term polling contract for the cloud worker.
+*   **Project-Controlled Read API:** A lightweight adapter service or a self-hosted **OpenMHz-compatible backend** exposes stable HTTP endpoints for archived/recent calls. This is the supported polling surface for the Railway worker.
+*   **Polling Worker:** The Railway worker polls project-controlled endpoints such as `/:shortName/calls/latest`, `/:shortName/calls/newer?time=...`, and `/:shortName/call/:id`, stores a cursor (`time` + call ID), and deduplicates calls before processing.
+*   **Audio Retrieval:** The worker downloads the audio from the media URL returned by the backend. The worker must not assume a fixed extension such as `.wav` or `.mp3`; the source may publish `.wav`, `.m4a`, or `.mp3`.
+*   **Transcription:** Audio chunks are sent to the **OpenAI speech-to-text API** (Whisper-family model or current equivalent) for Speech-to-Text conversion.
 *   **Entity Extraction:** The transcription is sent to **Ollama Cloud (Llama 3.1 8B)** to extract `Incident Type`, `Location`, and `Priority` in JSON format.
 *   **Geocoding:** Extracted text locations are converted to coordinates and pushed to **Supabase (PostGIS)**.
+
+**Architecture Guardrails:**
+*   Do not depend on the public **OpenMHz** hosted API as a production ingestion dependency unless explicit permission is obtained from OpenMHz.
+*   Do not depend on the restricted **Rdio Scanner WebSocket API** for backend ingestion.
+*   Keep the polling contract under project control so the worker can be tested, versioned, and replayed without reverse-engineering external products.
 
 ### 3.2 The "Official" Pipeline (Traffic/Transit)
 `OHGO API / COTA GTFS-RT` $\rightarrow$ `Python Worker` $\rightarrow$ `PostGIS` $\rightarrow$ `Vercel UI`

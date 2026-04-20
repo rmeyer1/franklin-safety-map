@@ -7,8 +7,9 @@ This document provides a structured execution path for the development team. The
 
 - [ ] **Hardware Acquisition:** Purchase and configure RTL-SDR V4 Dongle and antenna.
 - [ ] **SDRTrunk Configuration:** Install SDRTrunk on a persistent local node; configure for Franklin County P25 system.
-- [ ] **Rdio Scanner Setup:** Deploy Rdio Scanner to expose the local audio API.
-- [ ] **Connectivity Test:** Verify that a local API call can retrieve a recent audio file from a police dispatch.
+- [ ] **Rdio Scanner Setup:** Deploy Rdio Scanner for ingest and operator monitoring.
+- [ ] **Call Index / Adapter Setup:** Deploy a project-controlled backend or adapter that exposes stable call-listing endpoints for the cloud worker.
+- [ ] **Connectivity Test:** Verify that the project-controlled endpoint can return a recent call, a call ID, a timestamp, and a downloadable media URL.
 
 ## 🟡 Phase 1: Infrastructure & Foundation (The Plumbing)
 ... (keep existing)
@@ -33,10 +34,10 @@ This document provides a structured execution path for the development team. The
 *Goal: Transform raw audio into structured geospatial intelligence.*
 
 - [ ] **Audio Stream Integration:**
-    - [ ] Connect to Broadcastify streams for Columbus Police/Fire.
-    - [ ] Implement audio chunking and buffering in Python.
+    - [ ] Complete the self-hosted SDRTrunk -> Rdio Scanner -> adapter/backend ingest chain.
+    - [ ] Implement polling state management in Python using `time` plus call ID deduplication.
 - [ ] **Transcription Pipeline:**
-    - [ ] Integrate OpenAI Whisper for Speech-to-Text (STT).
+    - [ ] Integrate the OpenAI speech-to-text API.
     - [ ] Implement a "Noise Filter" to ignore non-dispatch chatter.
 - [ ] **NER Extraction (The Brain):**
     - [ ] Connect to **Ollama Cloud** (Llama 3.1 8B).
@@ -45,6 +46,10 @@ This document provides a structured execution path for the development team. The
 - [ ] **Geocoding:**
     - [ ] Convert extracted text addresses (e.g., "High and Broad") into Lat/Lng coordinates.
     - [ ] Push finalized "Crime" incidents to the Supabase map feed.
+
+## Notes
+- The worker must not depend on the public OpenMHz hosted API as its primary production integration.
+- The worker must not depend on the restricted Rdio Scanner WebSocket API for backend ingestion.
 
 ## 🔴 Phase 4: Advanced Geospatial UX (The Terminal)
 *Goal: Transform a map into a professional decision-support tool.*

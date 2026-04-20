@@ -1,4 +1,8 @@
+import dotenv from "dotenv";
 import { z } from "zod";
+
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 
 const envSchema = z.object({
   OPENMHZ_SYSTEM: z.string().default("frkoh"),
@@ -12,6 +16,7 @@ const envSchema = z.object({
   OLLAMA_MODEL: z.string().default("llama3.1:8b"),
   SUPABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  SUPABASE_DB_URL: z.string().optional(),
   MAPBOX_ACCESS_TOKEN: z.string().optional(),
 });
 
@@ -27,4 +32,3 @@ export function getEnv(): AppEnv {
   cachedEnv = envSchema.parse(process.env);
   return cachedEnv;
 }
-

@@ -57,3 +57,18 @@ export const extractedIncidentSchema = z.object({
 
 export type ExtractedIncident = z.infer<typeof extractedIncidentSchema>;
 
+export const incidentUpsertSchema = z.object({
+  source: z.string(),
+  sourceEventId: z.string().nullable().optional(),
+  layer: layerSchema,
+  category: z.string(),
+  address: z.string(),
+  description: z.string(),
+  severity: z.number().int().min(1).max(5),
+  status: incidentStatusSchema.default("Active"),
+  occurredAt: z.string(),
+  point: pointSchema,
+  metadata: z.record(z.string(), z.unknown()).default({}),
+});
+
+export type IncidentUpsert = z.infer<typeof incidentUpsertSchema>;

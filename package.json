@@ -7,22 +7,26 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "worker": "tsx worker/index.ts"
+    "worker": "tsx worker/index.ts",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed-mock-incidents.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.80.0",
+    "dotenv": "^17.4.2",
     "next": "^16.2.4",
     "openai": "^6.5.0",
+    "pg": "^8.20.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "tsx": "^4.20.6",
     "typescript": "^6.0.3"
   }
 }
-

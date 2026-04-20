@@ -2,14 +2,13 @@
 
 This document provides a structured execution path for the development team. The project is broken into five phases, moving from infrastructure to "Intelligence."
 
-## 🟢 Phase 0: Hardware & Local Setup
-*Goal: Establish the physical audio capture layer.*
+## 🟢 Phase 0: Source Validation & Ingestion Setup
+*Goal: Establish the software-only ingest path.*
 
-- [ ] **Hardware Acquisition:** Purchase and configure RTL-SDR V4 Dongle and antenna.
-- [ ] **SDRTrunk Configuration:** Install SDRTrunk on a persistent local node; configure for Franklin County P25 system.
-- [ ] **Rdio Scanner Setup:** Deploy Rdio Scanner for ingest and operator monitoring.
-- [ ] **Call Index / Adapter Setup:** Deploy a project-controlled backend or adapter that exposes stable call-listing endpoints for the cloud worker.
-- [ ] **Connectivity Test:** Verify that the project-controlled endpoint can return a recent call, a call ID, a timestamp, and a downloadable media URL.
+- [ ] **OpenMHz Source Validation:** Confirm the Franklin County (`frkoh`) source provides the call metadata and downloadable audio needed by the worker.
+- [ ] **Polling Prototype:** Implement a worker loop that can detect new calls and persist polling state.
+- [ ] **Audio Download Test:** Verify the worker can fetch a recent call audio file end-to-end.
+- [ ] **Deduplication State:** Persist `time` plus call ID so the worker can resume without reprocessing the same call.
 
 ## 🟡 Phase 1: Infrastructure & Foundation (The Plumbing)
 ... (keep existing)
@@ -34,7 +33,7 @@ This document provides a structured execution path for the development team. The
 *Goal: Transform raw audio into structured geospatial intelligence.*
 
 - [ ] **Audio Stream Integration:**
-    - [ ] Complete the self-hosted SDRTrunk -> Rdio Scanner -> adapter/backend ingest chain.
+    - [ ] Complete the OpenMHz -> polling worker ingest chain.
     - [ ] Implement polling state management in Python using `time` plus call ID deduplication.
 - [ ] **Transcription Pipeline:**
     - [ ] Integrate the OpenAI speech-to-text API.
@@ -48,8 +47,8 @@ This document provides a structured execution path for the development team. The
     - [ ] Push finalized "Crime" incidents to the Supabase map feed.
 
 ## Notes
-- The worker must not depend on the public OpenMHz hosted API as its primary production integration.
-- The worker must not depend on the restricted Rdio Scanner WebSocket API for backend ingestion.
+- The product is software-only and does not include a local radio capture node.
+- OpenMHz access assumptions should be validated before production hardening.
 
 ## 🔴 Phase 4: Advanced Geospatial UX (The Terminal)
 *Goal: Transform a map into a professional decision-support tool.*

@@ -1,82 +1,82 @@
 # AI-Listener Architecture Decision Record
 
-This document defines the supported ingestion architecture for the Franklin County Safety Map. It exists to prevent drift in future implementation work and to give reviewers a single source of truth for the scanner pipeline.
+This document defines the supported ingest architecture for the Franklin County Safety Map. It exists to prevent drift in future implementation work and to give reviewers a single source of truth for the scanner pipeline.
 
 ## 1. Canonical Architecture
 
 The supported police/crime ingest path is:
 
-`RTL-SDR V4 Dongle` -> `SDRTrunk` -> `Rdio Scanner` -> `Project-Controlled Call Index / OpenMHz-Compatible Backend` -> `Railway Worker` -> `OpenAI STT` -> `Ollama Cloud Extraction` -> `Supabase`
+`OpenMHz (frkoh)` -> `Polling/Fetch Worker` -> `OpenAI STT` -> `Ollama Cloud Extraction` -> `Supabase` -> `Vercel UI`
 
-## 2. Roles of Each Component
+## 2. Product Shape
 
-### 2.1 SDRTrunk
-*   Decodes the Franklin County P25 system.
-*   Produces per-call audio artifacts and metadata on a persistent local node.
+This product is now explicitly **software-only**.
 
-### 2.2 Rdio Scanner
-*   Ingests the decoded call files.
-*   Provides an operator-facing scanner experience for local validation.
-*   Serves as an ingest/UI layer, not the durable backend integration contract for the cloud worker.
+It does **not** include:
 
-### 2.3 Project-Controlled Call Index / OpenMHz-Compatible Backend
-*   Exposes stable HTTP endpoints for the worker to poll.
-*   Owns the canonical read contract for:
-    *   latest call lookup
-    *   incremental polling for newer calls
-    *   per-call detail fetch
-    *   media URL handoff
-*   Can be implemented in either of two ways:
-    *   A lightweight adapter that reads from local ingest state and emits a small, stable JSON schema.
-    *   A self-hosted OpenMHz-compatible backend that exposes call listing routes such as `/:shortName/calls/latest`, `/:shortName/calls/newer`, and `/:shortName/call/:id`.
+*   Raspberry Pi hardware
+*   RTL-SDR dongles
+*   antennas
+*   SDRTrunk
+*   Rdio Scanner
+*   any local radio capture node
 
-### 2.4 Railway Worker
-*   Polls only project-controlled endpoints.
+## 3. Roles of Each Component
+
+### 3.1 OpenMHz
+*   Acts as the upstream source of call metadata and hosted audio for the Franklin County system.
+*   Provides the audio artifacts that the worker downloads and processes.
+
+### 3.2 Polling/Fetch Worker
+*   Polls for newly published calls.
 *   Persists a polling cursor using both `time` and the last processed call ID.
 *   Deduplicates calls before transcription.
-*   Downloads the audio file using the backend-provided media URL.
-*   Sends audio to OpenAI speech-to-text and then to the extraction model.
-*   Writes normalized incidents into Supabase/PostGIS.
+*   Downloads the audio file for each newly discovered call.
+*   Normalizes upstream call metadata into the internal processing schema.
 
-## 3. Supported and Unsupported Data Sources
+### 3.3 OpenAI STT
+*   Converts downloaded call audio into text.
 
-### 3.1 Supported
-*   Self-hosted SDRTrunk ingest
-*   Self-hosted Rdio Scanner for ingest/UI
-*   Project-controlled adapter service
-*   Self-hosted OpenMHz-compatible backend
+### 3.4 Ollama Cloud Extraction
+*   Converts the transcription into structured incident JSON.
+*   Extracts incident type, raw location text, normalized address when available, and priority/confidence signals.
 
-### 3.2 Unsupported as Primary Production Dependencies
-*   Polling the public OpenMHz hosted API without explicit permission
-*   Depending on the public OpenMHz site for direct media URLs
-*   Depending on the restricted Rdio Scanner WebSocket API for backend ingestion
-*   Depending on Broadcastify as the primary machine-to-machine ingest path
+### 3.5 Supabase/PostGIS
+*   Stores normalized incidents.
+*   Supports map queries, recent-history feeds, and geospatial filtering.
 
-## 4. Polling Contract Requirements
+### 3.6 Vercel UI
+*   Renders the incident feed and map overlays for the end user.
 
-The worker integration contract must support:
+## 4. Worker Contract Requirements
 
-*   `latest` lookup for cold start
-*   `newer since time` lookup for incremental sync
-*   `call by id` fetch for reconciliation
-*   A stable call identifier
-*   A call timestamp
-*   A backend-provided media URL
-*   Talkgroup/system metadata needed for filtering and incident enrichment
+The ingest worker must support:
 
-The worker must not assume:
+*   polling for newly available calls
+*   stable resume behavior after restarts
+*   deduplication using both timestamp and call ID
+*   downloading audio without assuming a fixed file extension
+*   a clear boundary between upstream fetch logic and downstream transcription/extraction logic
 
-*   That every audio file is `.wav`
-*   That every call can be uniquely identified by timestamp alone
-*   That third-party hosted APIs will remain available, documented, or unblocked
+The ingest worker must not assume:
 
-## 5. Why This Decision Was Made
+*   that timestamps alone are unique
+*   that every call has identical metadata
+*   that every audio file uses the same container or codec
 
-The earlier draft docs implied that Rdio Scanner itself would provide a supported REST polling API for recent calls. That is not a reliable assumption for this project.
+## 5. Operational Constraints
 
-This architecture was chosen because it:
+*   OpenMHz is the upstream dependency for the police/crime AI-listener.
+*   The pipeline should encapsulate OpenMHz-specific fetch logic behind a narrow internal interface so the rest of the system stays provider-agnostic.
+*   Before production launch, validate the intended access pattern for OpenMHz-hosted metadata and audio.
 
-*   Keeps the backend contract under project control
-*   Avoids unsupported or restricted third-party integrations
-*   Allows replay, testing, and auditing of ingest behavior
-*   Makes it easier for multiple agents or developers to implement the worker consistently
+## 6. Why This Decision Was Made
+
+The product previously assumed a self-hosted radio capture stack. That is no longer the plan.
+
+The new decision is to prioritize a software-only MVP that:
+
+*   ingests existing hosted scanner audio
+*   minimizes infrastructure complexity
+*   lets the team focus on transcription, extraction, and UI value
+*   avoids spending time on hardware setup that is no longer required

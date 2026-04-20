@@ -1,11 +1,20 @@
 # LLM Model Selection Guide: AI-Listener Component
 
-This document outlines the LLM strategy for the "AI-Listener" pipeline, which converts raw radio transcriptions into structured map markers.
+This document outlines the model strategy for the "AI-Listener" pipeline, which converts raw radio transcriptions into structured map markers.
 
 ## 1. Objective
 The goal is to achieve high accuracy in Named Entity Recognition (NER) for public safety dispatches (Incident Type, Location, Priority) while minimizing inference cost and latency. 
 
 **Crucial Requirement:** To avoid local hardware bottlenecks, all models must be accessed via **Ollama Cloud** (or a hosted Ollama API provider). No local model execution is required.
+
+## 1.1 Speech-to-Text Provider Strategy
+
+The initial transcription strategy is:
+
+*   **Primary STT:** **xAI Speech-to-Text**
+*   **Fallback STT:** **OpenAI STT**
+
+The STT layer must be implemented behind a provider interface so the backend can route between providers based on availability, cost, or quality benchmarks.
 
 ## 2. Recommended Model Tiering
 

@@ -17,9 +17,9 @@ A high-performance map (Mapbox) displaying four distinct data layers:
 *   **Details:** Marker colors based on incident type; click-to-expand for incident details (e.g., "Medical Emergency - Unit E3 responding").
 
 #### 3.1.2 Police & Crime Layer (The "AI-Listener" Feed)
-*   **Source:** Broadcastify / ScanCBUS.
+*   **Source:** OpenMHz (`frkoh`) hosted call audio and metadata.
 *   **Capability:** Text-based incident markers parsed from radio dispatch.
-*   **Logic:** Use a background Python worker to transcribe audio $\rightarrow$ LLM extraction $\rightarrow$ Map marker.
+*   **Logic:** Use a background Node.js/TypeScript worker to poll for new calls, download audio, transcribe it with **xAI Speech-to-Text**, fall back to **OpenAI STT** when needed, run LLM extraction, and publish structured incidents to the map.
 *   **Details:** Distinguish between "Confirmed Crime" and "Active Dispatch."
 
 #### 3.1.3 Traffic & Infrastructure Layer (The "Official" Feed)

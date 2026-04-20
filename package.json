@@ -1,0 +1,28 @@
+{
+  "name": "franklin-safety-map",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "worker": "tsx worker/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.80.0",
+    "next": "^16.2.4",
+    "openai": "^6.5.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3"
+  }
+}
+

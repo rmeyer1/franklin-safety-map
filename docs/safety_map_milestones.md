@@ -6,6 +6,7 @@ This document provides a structured execution path for the development team. The
 *Goal: Establish the software-only ingest path.*
 
 - [ ] **OpenMHz Source Validation:** Confirm the Franklin County (`frkoh`) source provides the call metadata and downloadable audio needed by the worker.
+- [ ] **TypeScript Worker Skeleton:** Stand up the Node.js + TypeScript worker runtime and shared config.
 - [ ] **Polling Prototype:** Implement a worker loop that can detect new calls and persist polling state.
 - [ ] **Audio Download Test:** Verify the worker can fetch a recent call audio file end-to-end.
 - [ ] **Deduplication State:** Persist `time` plus call ID so the worker can resume without reprocessing the same call.
@@ -17,7 +18,7 @@ This document provides a structured execution path for the development team. The
 *Goal: Get the reliable, API-driven data onto the map.*
 
 - [ ] **Transit Layer (COTA):**
-    - [ ] Implement GTFS-Realtime parser in the Railway worker.
+    - [ ] Implement GTFS-Realtime parser in the Railway TypeScript worker.
     - [ ] Sync live bus positions to Supabase.
     - [ ] Render moving bus markers on the Mapbox UI.
 - [ ] **Traffic Layer (ODOT OHGO):**
@@ -25,7 +26,7 @@ This document provides a structured execution path for the development team. The
     - [ ] Store camera metadata and coordinates in Supabase.
     - [ ] Create the "Camera Snapshot" popup in the UI.
 - [ ] **Fire/EMS Layer (PulsePoint):**
-    - [ ] Implement the PulsePoint web-polling worker.
+    - [ ] Implement the PulsePoint web-polling worker in TypeScript.
     - [ ] Extract incident type and location.
     - [ ] Render fire/medical markers with distinct colors on the map.
 
@@ -34,9 +35,11 @@ This document provides a structured execution path for the development team. The
 
 - [ ] **Audio Stream Integration:**
     - [ ] Complete the OpenMHz -> polling worker ingest chain.
-    - [ ] Implement polling state management in Python using `time` plus call ID deduplication.
+    - [ ] Implement polling state management in TypeScript using `time` plus call ID deduplication.
 - [ ] **Transcription Pipeline:**
-    - [ ] Integrate the OpenAI speech-to-text API.
+    - [ ] Integrate xAI Speech-to-Text as the default provider.
+    - [ ] Integrate OpenAI STT as the fallback provider.
+    - [ ] Add provider routing, retries, and failure handling.
     - [ ] Implement a "Noise Filter" to ignore non-dispatch chatter.
 - [ ] **NER Extraction (The Brain):**
     - [ ] Connect to **Ollama Cloud** (Llama 3.1 8B).
@@ -48,6 +51,7 @@ This document provides a structured execution path for the development team. The
 
 ## Notes
 - The product is software-only and does not include a local radio capture node.
+- The backend and worker stack are Node.js + TypeScript, not Python.
 - OpenMHz access assumptions should be validated before production hardening.
 
 ## 🔴 Phase 4: Advanced Geospatial UX (The Terminal)

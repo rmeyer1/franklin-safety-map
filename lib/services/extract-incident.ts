@@ -40,6 +40,49 @@ type NormalizedInput = {
   label: string | null;
 };
 
+type KeywordIncidentRule = {
+  category: string;
+  pattern: RegExp;
+  severity: number;
+};
+
+const keywordIncidentRules: KeywordIncidentRule[] = [
+  { category: "Structure Fire", pattern: /\b(?:structure|building) fire\b/i, severity: 5 },
+  { category: "Vehicle Fire", pattern: /\bvehicle fire\b/i, severity: 4 },
+  { category: "Missing Person", pattern: /\bmissing person\b|\brunaway\b/i, severity: 4 },
+  { category: "Shots Fired", pattern: /\bshots fired\b/i, severity: 5 },
+  { category: "Shooting", pattern: /\bshooting\b/i, severity: 5 },
+  { category: "Stabbing", pattern: /\bstabb(?:ing)?\b|\bcutting\b/i, severity: 5 },
+  { category: "Bomb Threat", pattern: /\bbomb threat\b/i, severity: 5 },
+  { category: "Explosion", pattern: /\bexplosion\b/i, severity: 5 },
+  { category: "Hazmat", pattern: /\bhazmat\b|\bchemical spill\b|\bgas leak\b|\bammonia leak\b/i, severity: 5 },
+  { category: "Person with Weapon", pattern: /\b(?:person|man) with (?:a )?(?:gun|knife|weapon)\b/i, severity: 5 },
+  { category: "Officer Emergency", pattern: /\bofficer in trouble\b|\bofficer down\b/i, severity: 5 },
+  { category: "Robbery", pattern: /\brobbery\b/i, severity: 4 },
+  { category: "Burglary", pattern: /\bburglar(?:y|y in progress)\b|\bbreak(?:ing)?(?: and)? entering\b/i, severity: 4 },
+  { category: "Theft", pattern: /\btheft\b|\blarceny\b|\bstolen property\b|\bbank theft\b|\bshoplift(?:ing)?\b/i, severity: 2 },
+  { category: "Fraud", pattern: /\bfraud\b|\bforgery\b|\bbad check\b|\bscam\b/i, severity: 2 },
+  { category: "Domestic Disturbance", pattern: /\bdomestic\b/i, severity: 4 },
+  { category: "Assault", pattern: /\bassault\b/i, severity: 4 },
+  { category: "Fight", pattern: /\bfight\b/i, severity: 3 },
+  { category: "Sexual Assault", pattern: /\brape\b|\bsexual assault\b/i, severity: 5 },
+  { category: "Sex Offense", pattern: /\bsex offense\b|\bexposing\b/i, severity: 4 },
+  { category: "Suicidal Subject", pattern: /\bsuicide attempt\b|\bsuicidal\b|\bsuicide\b/i, severity: 5 },
+  { category: "Mental Health Crisis", pattern: /\bmental\b|\bdementia\b|\bpsychiatric\b/i, severity: 4 },
+  { category: "Water Rescue", pattern: /\bdrowning\b/i, severity: 5 },
+  { category: "Animal Complaint", pattern: /\banimal complaint\b|\bdog bite\b|\blivestock on roadway\b/i, severity: 1 },
+  { category: "Threats / Harassment", pattern: /\bthreats?\b|\bharassment\b/i, severity: 3 },
+  { category: "Suspicious Vehicle", pattern: /\bsuspicious vehicle\b/i, severity: 2 },
+  { category: "Suspicious Activity", pattern: /\bsuspicious person\b|\bprowler\b|\bsuspicious\b/i, severity: 2 },
+  { category: "Disabled Vehicle", pattern: /\bdisabled vehicle\b/i, severity: 1 },
+  { category: "Abandoned Vehicle", pattern: /\babandoned vehicle\b/i, severity: 1 },
+  { category: "Road Blocked", pattern: /\btraffic jam\b|\broad blocked\b|\broadway blocked\b/i, severity: 2 },
+  { category: "Crash", pattern: /\bcrash\b|\baccident\b|\bhit-skip\b/i, severity: 4 },
+  { category: "Medical Emergency", pattern: /\bmedical\b|\bambulance\b|\bunconscious\b/i, severity: 3 },
+  { category: "Alarm", pattern: /\balarm\b/i, severity: 1 },
+  { category: "Fire", pattern: /\bfire\b/i, severity: 4 },
+];
+
 function normalizeInput(
   input: string | IncidentExtractionInput,
 ): NormalizedInput {
@@ -58,33 +101,26 @@ function normalizeInput(
   };
 }
 
-function inferSeverityFromKeywords(text: string): number {
-  const lower = text.toLowerCase();
+function inferKeywordIncident(text: string): {
+  category: string;
+  severity: number;
+} | null {
+  for (const rule of keywordIncidentRules) {
+    if (rule.pattern.test(text)) {
+      return {
+        category: rule.category,
+        severity: rule.severity,
+      };
+    }
+  }
 
-  if (
-    lower.includes("shots fired") ||
-    lower.includes("gun") ||
-    lower.includes("officer down")
-  ) {
-    return 5;
-  }
-  if (
-    lower.includes("robbery") ||
-    lower.includes("assault") ||
-    lower.includes("stabbing") ||
-    lower.includes("crash")
-  ) {
-    return 4;
-  }
-  if (
-    lower.includes("fire") ||
-    lower.includes("medical") ||
-    lower.includes("unconscious")
-  ) {
-    return 3;
-  }
-  if (lower.includes("suspicious") || lower.includes("disturbance")) {
-    return 2;
+  return null;
+}
+
+function inferSeverityFromKeywords(text: string): number {
+  const keywordIncident = inferKeywordIncident(text);
+  if (keywordIncident) {
+    return keywordIncident.severity;
   }
 
   return 1;
@@ -101,6 +137,8 @@ function inferStatusHint(text: string): ExtractedIncident["statusHint"] {
   }
 
   if (
+    /\bshow me\b.*\b33\b/.test(lower) ||
+    lower.includes("signal 33") ||
     lower.includes("en route") ||
     lower.includes("out with") ||
     lower.includes("on scene") ||
@@ -143,14 +181,7 @@ function inferIncidentType(
     return incidentMatches[0].category;
   }
 
-  const lower = transcript.toLowerCase();
-  if (lower.includes("shots fired")) return "Shots Fired";
-  if (lower.includes("robbery")) return "Robbery";
-  if (lower.includes("domestic")) return "Domestic Disturbance";
-  if (lower.includes("crash")) return "Crash";
-  if (lower.includes("medical")) return "Medical Emergency";
-  if (lower.includes("fire")) return "Fire";
-  return null;
+  return inferKeywordIncident(transcript)?.category ?? null;
 }
 
 function inferCategory(
@@ -176,6 +207,9 @@ function inferConfidence(input: NormalizedInput, matchedCodes: MatchedRadioCode[
 
   if (getIncidentMatches(matchedCodes).length > 0) {
     score += 0.35;
+  }
+  if (inferKeywordIncident(input.transcript)) {
+    score += 0.2;
   }
   if (inferLocationText(input)) {
     score += 0.15;

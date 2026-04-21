@@ -23,6 +23,46 @@ const radioCodebookSchema = z.object({
 });
 
 const escapedPatternCache = new Map<string, string>();
+const incidentCueStopwords = new Set([
+  "and",
+  "bad",
+  "check",
+  "code",
+  "complaint",
+  "in",
+  "incident",
+  "of",
+  "or",
+  "other",
+  "person",
+  "progress",
+  "signal",
+  "the",
+  "unit",
+  "vehicle",
+]);
+const unitContextTokens = new Set([
+  "car",
+  "engine",
+  "ladder",
+  "medic",
+  "station",
+  "tower",
+  "truck",
+  "unit",
+]);
+const statusContextTokens = new Set([
+  "arrived",
+  "available",
+  "clear",
+  "enroute",
+  "onscene",
+  "out",
+  "responding",
+  "return",
+  "same",
+  "scene",
+]);
 
 function escapeRegex(value: string): string {
   const cached = escapedPatternCache.get(value);
@@ -47,6 +87,87 @@ function isShortNumericLikeCode(value: string): boolean {
   return /^[0-9]{1,2}[a-z]?$/i.test(value);
 }
 
+function isNumericLikeToken(value: string): boolean {
+  return /^[0-9]{1,5}[a-z]?$/i.test(value);
+}
+
+function buildIncidentCueWords(entry: RadioCodebookEntry): string[] {
+  const cueWords = [entry.meaning, entry.category, ...entry.aliases]
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .flatMap((value) => value.toLowerCase().split(/[^a-z0-9]+/))
+    .map(normalizeToken)
+    .filter(Boolean)
+    .filter((token) => !isShortNumericLikeCode(token))
+    .filter((token) => !incidentCueStopwords.has(token))
+    .filter((token) => token.length >= 4 || ["doa", "dui", "ovi"].includes(token));
+
+  return [...new Set(cueWords)];
+}
+
+function hasExplicitCodePrefix(transcript: string, token: string): boolean {
+  const match = token.toLowerCase().match(/^(\d+)([a-z]?)$/);
+  if (!match) {
+    return false;
+  }
+
+  const [, digits, suffix] = match;
+  if (suffix) {
+    return new RegExp(
+      `\\b(?:code|signal)\\s+${escapeRegex(digits)}\\s*${escapeRegex(suffix)}\\b`,
+      "i",
+    ).test(transcript);
+  }
+
+  return new RegExp(`\\b(?:code|signal)\\s+${escapeRegex(digits)}\\b`, "i").test(
+    transcript,
+  );
+}
+
+function isLikelyUnitOrStatusContext(
+  rawTokens: string[],
+  index: number,
+  unitTokens: Set<string>,
+): boolean {
+  const surroundingTokens = [
+    rawTokens[index - 2] ?? "",
+    rawTokens[index - 1] ?? "",
+    rawTokens[index + 1] ?? "",
+    rawTokens[index + 2] ?? "",
+  ];
+
+  if (surroundingTokens.some((token) => unitTokens.has(token))) {
+    return true;
+  }
+
+  if (surroundingTokens.some((token) => unitContextTokens.has(token))) {
+    return true;
+  }
+
+  if (
+    [rawTokens[index - 1] ?? "", rawTokens[index + 1] ?? ""].some((token) =>
+      isNumericLikeToken(token),
+    )
+  ) {
+    return true;
+  }
+
+  const trailingContext = rawTokens.slice(index + 1, index + 4);
+  return trailingContext.some((token) => statusContextTokens.has(token));
+}
+
+function hasIncidentCueNearby(
+  rawTokens: string[],
+  index: number,
+  cueWords: string[],
+): boolean {
+  if (cueWords.length === 0) {
+    return false;
+  }
+
+  const contextWindow = rawTokens.slice(Math.max(0, index - 2), index + 5);
+  return cueWords.some((cueWord) => contextWindow.includes(cueWord));
+}
+
 export type RadioCodebookEntry = z.infer<typeof radioCodebookEntrySchema>;
 export type MatchedRadioCode = {
   code: string;
@@ -60,7 +181,17 @@ export type MatchedRadioCode = {
 };
 
 export class RadioCodebook {
-  constructor(private readonly entries: RadioCodebookEntry[]) {}
+  private readonly unitTokens: Set<string>;
+
+  constructor(private readonly entries: RadioCodebookEntry[]) {
+    this.unitTokens = new Set(
+      entries
+        .filter((entry) => entry.role === "unit")
+        .flatMap((entry) => [entry.code, ...entry.aliases])
+        .map(normalizeToken)
+        .filter(Boolean),
+    );
+  }
 
   matchTranscript(transcript: string): MatchedRadioCode[] {
     const matches: MatchedRadioCode[] = [];
@@ -74,14 +205,22 @@ export class RadioCodebook {
       );
       const didMatch = tokens.some((token) => {
         if (isShortNumericLikeCode(token)) {
+          const cueWords = buildIncidentCueWords(entry);
+
           for (let index = 0; index < rawTokens.length; index += 1) {
             if (rawTokens[index] !== token) {
               continue;
             }
 
-            const previous = rawTokens[index - 1] ?? "";
-            const next = rawTokens[index + 1] ?? "";
-            if (tokenHasLetters(previous) || tokenHasLetters(next)) {
+            if (hasExplicitCodePrefix(lowerTranscript, token)) {
+              return true;
+            }
+
+            if (isLikelyUnitOrStatusContext(rawTokens, index, this.unitTokens)) {
+              continue;
+            }
+
+            if (hasIncidentCueNearby(rawTokens, index, cueWords)) {
               return true;
             }
           }

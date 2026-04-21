@@ -1,48 +1,761 @@
 {
   "system": "frkoh",
-  "version": "seed-v1",
+  "version": "researched-v2",
+  "notes": [
+    "This codebook is scoped to the OpenMHz frkoh feed, which corresponds to Warren County, Ohio / county number 83, not Franklin County, Ohio.",
+    "Incident and status codes are seeded from the Buckeye State Sheriffs Association (BSSA) reference because that is the clearest Ohio-specific published code table available for sheriff-dispatched traffic.",
+    "Agency/unit designators are seeded from the Warren County, Ohio RadioReference wiki page.",
+    "Not every municipal agency on the system is guaranteed to use every BSSA code exactly as published. Entries are prioritized for likely local relevance and source transparency."
+  ],
+  "sources": [
+    {
+      "name": "RadioReference Wiki - Buckeye State Sheriffs Association (OH)",
+      "url": "https://wiki.radioreference.com/index.php/Buckeye_State_Sheriffs_Association_%28BSSA%29_%28OH%29"
+    },
+    {
+      "name": "RadioReference Wiki - Warren County (OH)",
+      "url": "https://wiki.radioreference.com/index.php/Warren_County_%28OH%29"
+    }
+  ],
   "entries": [
     {
-      "code": "13",
-      "meaning": "Robbery",
-      "category": "Robbery",
+      "code": "2",
+      "meaning": "Auto accident",
+      "role": "incident",
+      "category": "Crash",
       "severity": 4,
-      "aliases": ["code 13"]
+      "aliases": ["code 2", "signal 2"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "3",
+      "meaning": "Alarm",
+      "role": "incident",
+      "category": "Alarm",
+      "severity": 2,
+      "aliases": ["code 3", "signal 3"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "4",
+      "meaning": "Ambulance request",
+      "role": "incident",
+      "category": "Medical Emergency",
+      "severity": 3,
+      "aliases": ["code 4", "signal 4"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "5",
+      "meaning": "Arson",
+      "role": "incident",
+      "category": "Fire",
+      "severity": 4,
+      "aliases": ["code 5", "signal 5"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "6",
+      "meaning": "Dead body",
+      "role": "incident",
+      "category": "Death Investigation",
+      "severity": 4,
+      "aliases": ["code 6", "signal 6"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "10",
+      "meaning": "Bombing",
+      "role": "incident",
+      "category": "Explosion",
+      "severity": 5,
+      "aliases": ["code 10", "signal 10"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "11",
+      "meaning": "Burglary",
+      "role": "incident",
+      "category": "Burglary",
+      "severity": 4,
+      "aliases": ["code 11", "signal 11"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "12",
+      "meaning": "Kidnapping",
+      "role": "incident",
+      "category": "Kidnapping",
+      "severity": 5,
+      "aliases": ["code 12", "signal 12"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "13",
+      "meaning": "Forgery",
+      "role": "incident",
+      "category": "Fraud",
+      "severity": 2,
+      "aliases": ["code 13", "signal 13"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "This replaces the earlier placeholder robbery mapping"
+    },
+    {
+      "code": "14",
+      "meaning": "Fraud",
+      "role": "incident",
+      "category": "Fraud",
+      "severity": 2,
+      "aliases": ["code 14", "signal 14"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "15",
+      "meaning": "Child abuse",
+      "role": "incident",
+      "category": "Child Welfare",
+      "severity": 4,
+      "aliases": ["code 15", "signal 15"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "17",
+      "meaning": "Drug offense",
+      "role": "incident",
+      "category": "Drug Investigation",
+      "severity": 3,
+      "aliases": ["code 17", "signal 17"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "18",
+      "meaning": "Driving while intoxicated",
+      "role": "incident",
+      "category": "DUI / OVI",
+      "severity": 3,
+      "aliases": ["code 18", "signal 18", "ovi"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "20",
+      "meaning": "Domestic complaint",
+      "role": "incident",
+      "category": "Domestic Disturbance",
+      "severity": 4,
+      "aliases": ["code 20", "signal 20"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "This is the BSSA domestic complaint code, not 25"
+    },
+    {
+      "code": "21",
+      "meaning": "Gambling complaint",
+      "role": "incident",
+      "category": "Complaint",
+      "severity": 1,
+      "aliases": ["code 21", "signal 21"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "22",
+      "meaning": "Escort",
+      "role": "incident",
+      "category": "Escort",
+      "severity": 1,
+      "aliases": ["code 22", "signal 22"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
     },
     {
       "code": "25",
-      "meaning": "Domestic disturbance",
-      "category": "Domestic Disturbance",
-      "severity": 4,
-      "aliases": ["code 25"]
+      "meaning": "Airplane crash",
+      "role": "incident",
+      "category": "Aircraft Incident",
+      "severity": 5,
+      "aliases": ["code 25", "signal 25"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "This replaces the earlier placeholder domestic disturbance mapping"
     },
     {
-      "code": "84",
-      "meaning": "Shots fired",
+      "code": "26",
+      "meaning": "Fight",
+      "role": "incident",
+      "category": "Fight",
+      "severity": 3,
+      "aliases": ["code 26", "signal 26"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "27",
+      "meaning": "Assault",
+      "role": "incident",
+      "category": "Assault",
+      "severity": 4,
+      "aliases": ["code 27", "signal 27"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "28",
+      "meaning": "Juvenile complaint",
+      "role": "incident",
+      "category": "Juvenile Complaint",
+      "severity": 2,
+      "aliases": ["code 28", "signal 28"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "29",
+      "meaning": "Mentally ill subject",
+      "role": "incident",
+      "category": "Mental Health Crisis",
+      "severity": 3,
+      "aliases": ["code 29", "signal 29"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "30",
+      "meaning": "Intoxicated subject",
+      "role": "incident",
+      "category": "Intoxicated Subject",
+      "severity": 2,
+      "aliases": ["code 30", "signal 30"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "31",
+      "meaning": "Missing person",
+      "role": "incident",
+      "category": "Missing Person",
+      "severity": 4,
+      "aliases": ["code 31", "signal 31"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "34",
+      "meaning": "Prowler",
+      "role": "incident",
+      "category": "Suspicious Activity",
+      "severity": 2,
+      "aliases": ["code 34", "signal 34"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "35",
+      "meaning": "Traffic signal trouble",
+      "role": "incident",
+      "category": "Traffic Problem",
+      "severity": 1,
+      "aliases": ["code 35", "signal 35"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "36",
+      "meaning": "Traffic hazard",
+      "role": "incident",
+      "category": "Traffic Hazard",
+      "severity": 2,
+      "aliases": ["code 36", "signal 36"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "38",
+      "meaning": "Shooting",
+      "role": "incident",
       "category": "Shots Fired",
       "severity": 5,
-      "aliases": ["code 84"]
+      "aliases": ["code 38", "signal 38"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
     },
     {
-      "code": "10-33",
-      "meaning": "Emergency radio traffic",
+      "code": "40",
+      "meaning": "Stolen property",
+      "role": "incident",
+      "category": "Theft",
+      "severity": 2,
+      "aliases": ["code 40", "signal 40"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "42",
+      "meaning": "Suspicious person",
+      "role": "incident",
+      "category": "Suspicious Activity",
+      "severity": 2,
+      "aliases": ["code 42", "signal 42"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "44",
+      "meaning": "Officer in trouble",
+      "role": "incident",
       "category": "Officer Emergency",
       "severity": 5,
-      "aliases": ["1033", "10 33"]
+      "aliases": ["code 44", "signal 44"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
     },
     {
-      "code": "10-50",
-      "meaning": "Traffic crash",
-      "category": "Crash",
+      "code": "46",
+      "meaning": "Traffic citation / traffic stop",
+      "role": "incident",
+      "category": "Traffic Stop",
+      "severity": 1,
+      "aliases": ["code 46", "signal 46"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Often relevant in patrol traffic"
+    },
+    {
+      "code": "50",
+      "meaning": "Robbery",
+      "role": "incident",
+      "category": "Robbery",
       "severity": 4,
-      "aliases": ["1050", "10 50"]
+      "aliases": ["code 50", "signal 50"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "This is the BSSA robbery code"
     },
     {
-      "code": "10-52",
-      "meaning": "Medical response",
-      "category": "Medical Emergency",
-      "severity": 3,
-      "aliases": ["1052", "10 52"]
+      "code": "52A",
+      "meaning": "Shots fired",
+      "role": "incident",
+      "category": "Shots Fired",
+      "severity": 5,
+      "aliases": ["52a", "52 a", "code 52a", "signal 52a"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "This is the BSSA shots-fired code, not 84"
+    },
+    {
+      "code": "52B",
+      "meaning": "Cutting / stabbing",
+      "role": "incident",
+      "category": "Stabbing",
+      "severity": 5,
+      "aliases": ["52b", "52 b", "code 52b", "signal 52b"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "54",
+      "meaning": "Vandalism",
+      "role": "incident",
+      "category": "Vandalism",
+      "severity": 2,
+      "aliases": ["code 54", "signal 54"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "57",
+      "meaning": "Suicide",
+      "role": "incident",
+      "category": "Suicidal Subject",
+      "severity": 5,
+      "aliases": ["code 57", "signal 57"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "58",
+      "meaning": "Rape / sexual assault",
+      "role": "incident",
+      "category": "Sexual Assault",
+      "severity": 5,
+      "aliases": ["code 58", "signal 58"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "60",
+      "meaning": "Hostage situation",
+      "role": "incident",
+      "category": "Hostage Situation",
+      "severity": 5,
+      "aliases": ["code 60", "signal 60"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "61",
+      "meaning": "Person in danger",
+      "role": "incident",
+      "category": "Person in Danger",
+      "severity": 4,
+      "aliases": ["code 61", "signal 61"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "62",
+      "meaning": "Trespassing",
+      "role": "incident",
+      "category": "Trespassing",
+      "severity": 2,
+      "aliases": ["code 62", "signal 62"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "68",
+      "meaning": "Abandoned auto",
+      "role": "incident",
+      "category": "Abandoned Vehicle",
+      "severity": 1,
+      "aliases": ["code 68", "signal 68"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "72",
+      "meaning": "Parking problem",
+      "role": "incident",
+      "category": "Parking Complaint",
+      "severity": 1,
+      "aliases": ["code 72", "signal 72"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "77",
+      "meaning": "Animal complaint",
+      "role": "incident",
+      "category": "Animal Complaint",
+      "severity": 1,
+      "aliases": ["code 77", "signal 77"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "88",
+      "meaning": "Bomb threat",
+      "role": "incident",
+      "category": "Bomb Threat",
+      "severity": 5,
+      "aliases": ["code 88", "signal 88"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+    {
+      "code": "90",
+      "meaning": "Train derailment",
+      "role": "incident",
+      "category": "Rail Incident",
+      "severity": 5,
+      "aliases": ["code 90", "signal 90"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Ohio BSSA incident code"
+    },
+
+    {
+      "code": "25R",
+      "meaning": "Return to headquarters",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "clear",
+      "aliases": ["return to headquarters", "return hq", "return to headquarter"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 25 phrase matching; avoids collision with incident code 25"
+    },
+    {
+      "code": "33S",
+      "meaning": "In service",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": ["in service"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 33 phrase matching"
+    },
+    {
+      "code": "35S",
+      "meaning": "On patrol",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": ["on patrol"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 35 phrase matching"
+    },
+    {
+      "code": "37S",
+      "meaning": "Out of service",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "clear",
+      "aliases": ["out of service"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 37 phrase matching"
+    },
+    {
+      "code": "41S",
+      "meaning": "One unit in contact",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": ["in contact"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 41 phrase matching"
+    },
+    {
+      "code": "42S",
+      "meaning": "Backup unit needed",
+      "role": "resource",
+      "category": null,
+      "severity": 4,
+      "aliases": ["backup needed", "send backup", "need backup"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 42 phrase matching"
+    },
+    {
+      "code": "61S",
+      "meaning": "Send tow truck",
+      "role": "resource",
+      "category": null,
+      "severity": 1,
+      "aliases": ["send tow truck", "need tow truck", "tow truck"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 61 phrase matching"
+    },
+    {
+      "code": "76S",
+      "meaning": "Assist motorist",
+      "role": "resource",
+      "category": "Motorist Assist",
+      "severity": 1,
+      "aliases": ["assist motorist", "motorist assist"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 76 phrase matching"
+    },
+    {
+      "code": "84S",
+      "meaning": "Open door or window",
+      "role": "incident",
+      "category": "Security Check",
+      "severity": 1,
+      "aliases": ["open door", "open window"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "BSSA Signal 84 phrase mapping; this is not shots fired"
+    },
+    {
+      "code": "86S",
+      "meaning": "Has message",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": ["has message"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 86 phrase matching"
+    },
+    {
+      "code": "94S",
+      "meaning": "Out of vehicle",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": ["out of vehicle"],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic key for BSSA Signal 94 phrase matching"
+    },
+
+    {
+      "code": "ADAM",
+      "meaning": "Carlisle Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["adam unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "BAKER",
+      "meaning": "Morrow Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["baker unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "CHARLES",
+      "meaning": "Mason Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["charles unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "EDWARD",
+      "meaning": "Hamilton Township Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["edward unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "FRANK",
+      "meaning": "Franklin Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["frank unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "GEORGE",
+      "meaning": "Ohio Department of Natural Resources game warden unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["george unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "HENRY",
+      "meaning": "Harveysburg Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["henry unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "KING",
+      "meaning": "Kings Island Public Safety unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["king unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "LINCOLN",
+      "meaning": "Clearcreek Township Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["lincoln unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "PAUL",
+      "meaning": "Warren County Sheriff's Office patrol unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["paul unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "ROBERT",
+      "meaning": "ODNR ranger at Caesar Creek unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["robert unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "TOM",
+      "meaning": "Warren County Sheriff's Office traffic unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["tom unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "VICTOR",
+      "meaning": "Mainville Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["victor unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "WILLIAM",
+      "meaning": "Waynesville Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["william unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "XRAY",
+      "meaning": "SWAT team unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["xray unit", "x-ray", "x ray"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "YOUNG",
+      "meaning": "Warren County Adult Probation unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["young unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "ZEBRA",
+      "meaning": "Springboro Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": ["zebra unit"],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
     }
   ]
 }

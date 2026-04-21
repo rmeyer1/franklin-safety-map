@@ -101,8 +101,12 @@ export const extractedIncidentSchema = z.object({
     z.object({
       code: z.string(),
       meaning: z.string(),
+      role: z.enum(["incident", "status", "resource", "unit", "reference"]),
       category: z.string().nullable(),
       severity: z.number().int().min(1).max(5).nullable(),
+      statusHint: z.enum(["new", "update", "clear", "unknown"]).nullable(),
+      source: z.string().nullable(),
+      notes: z.string().nullable(),
     }),
   ),
 });

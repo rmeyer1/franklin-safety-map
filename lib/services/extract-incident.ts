@@ -112,6 +112,16 @@ function inferStatusHint(text: string): ExtractedIncident["statusHint"] {
   return "new";
 }
 
+function getIncidentMatches(matchedCodes: MatchedRadioCode[]): MatchedRadioCode[] {
+  return matchedCodes.filter((code) => code.role === "incident");
+}
+
+function getStatusMatches(matchedCodes: MatchedRadioCode[]): MatchedRadioCode[] {
+  return matchedCodes.filter(
+    (code) => code.role === "status" && code.statusHint !== null,
+  );
+}
+
 function inferLocationText(input: NormalizedInput): string | null {
   const fromLabel = input.label?.trim();
   if (fromLabel && fromLabel.length > 0) {
@@ -128,8 +138,9 @@ function inferIncidentType(
   transcript: string,
   matchedCodes: MatchedRadioCode[],
 ): string | null {
-  if (matchedCodes.length > 0 && matchedCodes[0].category) {
-    return matchedCodes[0].category;
+  const incidentMatches = getIncidentMatches(matchedCodes);
+  if (incidentMatches.length > 0 && incidentMatches[0].category) {
+    return incidentMatches[0].category;
   }
 
   const lower = transcript.toLowerCase();
@@ -146,8 +157,9 @@ function inferCategory(
   transcript: string,
   matchedCodes: MatchedRadioCode[],
 ): string | null {
-  if (matchedCodes.length > 0) {
-    return matchedCodes[0].category ?? matchedCodes[0].meaning;
+  const incidentMatches = getIncidentMatches(matchedCodes);
+  if (incidentMatches.length > 0) {
+    return incidentMatches[0].category ?? incidentMatches[0].meaning;
   }
 
   const incidentType = inferIncidentType(transcript, matchedCodes);
@@ -162,7 +174,7 @@ function inferCategory(
 function inferConfidence(input: NormalizedInput, matchedCodes: MatchedRadioCode[]): number {
   let score = 0.25;
 
-  if (matchedCodes.length > 0) {
+  if (getIncidentMatches(matchedCodes).length > 0) {
     score += 0.35;
   }
   if (inferLocationText(input)) {
@@ -230,11 +242,15 @@ class HeuristicIncidentExtractionService implements IncidentExtractionService {
     const normalized = normalizeInput(input);
     const matchedCodes = this.codebook?.matchTranscript(normalized.transcript) ?? [];
     const fallbackSeverity = inferSeverityFromKeywords(normalized.transcript);
+    const incidentMatches = getIncidentMatches(matchedCodes);
+    const statusMatches = getStatusMatches(matchedCodes);
 
-    const severityFromCode = matchedCodes.find(
+    const severityFromCode = incidentMatches.find(
       (code) => code.severity !== null,
     )?.severity;
     const severity = severityFromCode ?? fallbackSeverity;
+    const statusHint =
+      statusMatches[0]?.statusHint ?? inferStatusHint(normalized.transcript);
 
     return extractedIncidentSchema.parse({
       incidentType: inferIncidentType(normalized.transcript, matchedCodes),
@@ -243,7 +259,7 @@ class HeuristicIncidentExtractionService implements IncidentExtractionService {
       address: inferLocationText(normalized),
       summary: normalized.transcript,
       severity,
-      statusHint: inferStatusHint(normalized.transcript),
+      statusHint,
       confidence: inferConfidence(normalized, matchedCodes),
       matchedCodes,
     });

@@ -36,6 +36,11 @@ const envSchema = z.object({
   WHISPER_MODEL: z.string().default("turbo"),
   WHISPER_LANGUAGE: z.string().trim().default("en"),
   WHISPER_EXTRA_ARGS: z.string().trim().default(""),
+  INCIDENT_EXTRACTION_PROVIDER: z
+    .enum(["auto", "heuristic", "ollama"])
+    .default("auto"),
+  RADIO_CODEBOOK_PATH: z.string().default("data/radio-codes/frkoh.json"),
+  EXTRACTION_PROMPT_VERSION: z.string().default("v1"),
   XAI_API_KEY: z.string().optional(),
   XAI_STT_MODEL: z.string().default("grok-2-stt"),
   OPENAI_API_KEY: z.string().optional(),

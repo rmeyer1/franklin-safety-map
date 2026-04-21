@@ -1,0 +1,48 @@
+{
+  "system": "frkoh",
+  "version": "seed-v1",
+  "entries": [
+    {
+      "code": "13",
+      "meaning": "Robbery",
+      "category": "Robbery",
+      "severity": 4,
+      "aliases": ["code 13"]
+    },
+    {
+      "code": "25",
+      "meaning": "Domestic disturbance",
+      "category": "Domestic Disturbance",
+      "severity": 4,
+      "aliases": ["code 25"]
+    },
+    {
+      "code": "84",
+      "meaning": "Shots fired",
+      "category": "Shots Fired",
+      "severity": 5,
+      "aliases": ["code 84"]
+    },
+    {
+      "code": "10-33",
+      "meaning": "Emergency radio traffic",
+      "category": "Officer Emergency",
+      "severity": 5,
+      "aliases": ["1033", "10 33"]
+    },
+    {
+      "code": "10-50",
+      "meaning": "Traffic crash",
+      "category": "Crash",
+      "severity": 4,
+      "aliases": ["1050", "10 50"]
+    },
+    {
+      "code": "10-52",
+      "meaning": "Medical response",
+      "category": "Medical Emergency",
+      "severity": 3,
+      "aliases": ["1052", "10 52"]
+    }
+  ]
+}

@@ -89,10 +89,22 @@ export const transcriptionSchema = z.object({
 export type Transcription = z.infer<typeof transcriptionSchema>;
 
 export const extractedIncidentSchema = z.object({
+  incidentType: z.string().nullable(),
   category: z.string().nullable(),
+  locationText: z.string().nullable(),
   address: z.string().nullable(),
   summary: z.string(),
   severity: z.number().int().min(1).max(5),
+  statusHint: z.enum(["new", "update", "clear", "unknown"]),
+  confidence: z.number().min(0).max(1),
+  matchedCodes: z.array(
+    z.object({
+      code: z.string(),
+      meaning: z.string(),
+      category: z.string().nullable(),
+      severity: z.number().int().min(1).max(5).nullable(),
+    }),
+  ),
 });
 
 export type ExtractedIncident = z.infer<typeof extractedIncidentSchema>;

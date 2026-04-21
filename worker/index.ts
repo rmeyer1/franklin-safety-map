@@ -157,7 +157,11 @@ async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
     transcriptionProvider = transcription.provider;
   }
 
-  const incident = await extractionService.extractFromTranscript(transcriptText);
+  const incident = await extractionService.extractFromTranscript({
+    transcript: transcriptText,
+    channel: call.channel,
+    label: call.label,
+  });
 
   const savedIncident = await incidentRepository.upsert({
     source: call.source,
@@ -180,6 +184,12 @@ async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
       durationSeconds: call.durationSeconds,
       transcript: transcriptText,
       transcriptionProvider,
+      extraction: {
+        incidentType: incident.incidentType,
+        statusHint: incident.statusHint,
+        confidence: incident.confidence,
+        matchedCodes: incident.matchedCodes,
+      },
       geocoded: false,
       sourceMetadata: call.metadata,
     },
@@ -195,6 +205,9 @@ async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
       provider: transcriptionProvider,
       severity: incident.severity,
       category: incident.category,
+      incidentType: incident.incidentType,
+      statusHint: incident.statusHint,
+      extractionConfidence: incident.confidence,
       incidentId: savedIncident.id,
     }),
   );

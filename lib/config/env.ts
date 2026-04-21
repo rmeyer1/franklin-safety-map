@@ -26,6 +26,10 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   SUPABASE_DB_URL: z.string().optional(),
   MAPBOX_ACCESS_TOKEN: z.string().optional(),
+  WORKER_MODE: z.enum(["once", "loop"]).default("once"),
+  WORKER_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(15000),
+  WORKER_ERROR_BACKOFF_MS: z.coerce.number().int().positive().default(30000),
+  WORKER_MAX_CALLS_PER_RUN: z.coerce.number().int().positive().default(10),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

@@ -81,7 +81,7 @@ export const ingestCursorSchema = z.object({
 export type IngestCursor = z.infer<typeof ingestCursorSchema>;
 
 export const transcriptionSchema = z.object({
-  provider: z.enum(["xai", "openai"]),
+  provider: z.enum(["whisper_local", "xai", "openai"]),
   text: z.string(),
   confidence: z.number().min(0).max(1).optional(),
 });

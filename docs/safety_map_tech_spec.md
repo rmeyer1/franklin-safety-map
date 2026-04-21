@@ -39,9 +39,11 @@ This pipeline transforms hosted scanner audio into structured map markers using 
 
 **Architecture Guardrails:**
 *   The product is software-only. No Raspberry Pi, SDR dongle, antenna, SDRTrunk, or Rdio Scanner is required.
-*   The worker must isolate OpenMHz fetch logic behind a small internal ingestion module so the rest of the pipeline is independent of the upstream transport details.
+*   The worker must consume a normalized `SourceAdapter` interface and a `SourceCall` contract so the downstream pipeline is independent of the upstream provider.
+*   OpenMHz should be treated as one adapter implementation, not as the worker's native internal contract.
 *   The worker must isolate speech-to-text behind a provider interface so xAI and OpenAI can be swapped or benchmarked without rewriting the ingest pipeline.
 *   Before production launch, confirm the permitted access pattern for OpenMHz-hosted call metadata and media.
+*   The production roadmap should not assume OpenMHz remains the final source until the source-risk gate is closed.
 
 ### 3.2 The "Official" Pipeline (Traffic/Transit)
 `OHGO API / COTA GTFS-RT` $\rightarrow$ `TypeScript Worker` $\rightarrow$ `PostGIS` $\rightarrow$ `Vercel UI`

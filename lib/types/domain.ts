@@ -33,12 +33,52 @@ export type MapFeedResponse = z.infer<typeof mapFeedResponseSchema>;
 export const openMhzCallSchema = z.object({
   id: z.string(),
   occurredAt: z.string(),
+  occurredAtMs: z.number().int().nonnegative(),
+  talkgroupNumber: z.number().int().nullable(),
   talkgroup: z.string().nullable(),
   talkgroupLabel: z.string().nullable(),
   audioUrl: z.string().url(),
+  fileName: z.string().nullable(),
+  durationSeconds: z.number().nullable(),
 });
 
 export type OpenMhzCall = z.infer<typeof openMhzCallSchema>;
+
+export const sourceCallSchema = z.object({
+  source: z.string(),
+  cursorKey: z.string(),
+  sourceEventId: z.string(),
+  occurredAt: z.string(),
+  occurredAtMs: z.number().int().nonnegative(),
+  audioUrl: z.string().url().nullable(),
+  fileName: z.string().nullable(),
+  transcriptText: z.string().nullable(),
+  channel: z.string().nullable(),
+  label: z.string().nullable(),
+  durationSeconds: z.number().nullable(),
+  metadata: z.record(z.string(), z.unknown()).default({}),
+});
+
+export type SourceCall = z.infer<typeof sourceCallSchema>;
+
+export const openMhzAdapterResponseSchema = z.object({
+  system: z.string(),
+  mode: z.enum(["direct", "fixture"]),
+  generatedAt: z.string(),
+  calls: z.array(openMhzCallSchema),
+});
+
+export type OpenMhzAdapterResponse = z.infer<typeof openMhzAdapterResponseSchema>;
+
+export const ingestCursorSchema = z.object({
+  source: z.string(),
+  cursorKey: z.string(),
+  lastOccurredAtMs: z.number().int().nonnegative(),
+  lastSourceEventId: z.string().nullable(),
+  updatedAt: z.string(),
+});
+
+export type IngestCursor = z.infer<typeof ingestCursorSchema>;
 
 export const transcriptionSchema = z.object({
   provider: z.enum(["xai", "openai"]),

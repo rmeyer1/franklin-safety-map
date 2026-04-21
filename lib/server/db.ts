@@ -25,3 +25,12 @@ export function getDbPool(): Pool {
   return pool;
 }
 
+export async function closeDbPool(): Promise<void> {
+  if (!pool) {
+    return;
+  }
+
+  const currentPool = pool;
+  pool = undefined;
+  await currentPool.end();
+}

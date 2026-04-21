@@ -5,9 +5,17 @@ dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 const envSchema = z.object({
+  INGEST_SOURCE: z.enum(["openmhz"]).default("openmhz"),
   OPENMHZ_SYSTEM: z.string().default("frkoh"),
   OPENMHZ_API_BASE_URL: z.string().optional(),
+  OPENMHZ_ADAPTER_BASE_URL: z.string().optional(),
+  OPENMHZ_ADAPTER_CALLS_PATH: z.string().default("/api/ingest/openmhz/calls"),
+  OPENMHZ_ADAPTER_MODE: z.enum(["direct", "fixture"]).default("direct"),
+  OPENMHZ_ADAPTER_TOKEN: z.string().optional(),
+  OPENMHZ_CAPTURE_DIR: z.string().default("data/openmhz"),
   OPENMHZ_WEB_BASE_URL: z.string().default("https://openmhz.com"),
+  OPENMHZ_POLL_LOOKBACK_MS: z.coerce.number().int().min(0).default(5000),
+  OPENMHZ_TALKGROUP_ALLOWLIST: z.string().optional(),
   XAI_API_KEY: z.string().optional(),
   XAI_STT_MODEL: z.string().default("grok-2-stt"),
   OPENAI_API_KEY: z.string().optional(),

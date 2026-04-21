@@ -24,8 +24,8 @@ The ingest pipeline is implemented in **Node.js + TypeScript**.
 1.  **Poll for new calls:** Query the upstream source for newly available calls.
 2.  **Persist cursor state:** Store the most recent processed timestamp plus call ID.
 3.  **Download audio:** Fetch the audio file for each newly discovered call.
-4.  **Transcribe:** Send the audio to **xAI Speech-to-Text** first.
-5.  **Fallback:** If xAI is unavailable, rate-limited, or returns unusable output, retry transcription with **OpenAI STT**.
+4.  **Transcribe (local-first optional):** If `WHISPER_LOCAL_ENABLED=true`, run **local Whisper CLI** first on the worker host.
+5.  **Fallback chain:** If local Whisper is disabled or returns unusable output, retry with **xAI Speech-to-Text**, then **OpenAI STT**.
 6.  **Extract structure:** Send the transcript to Ollama Cloud for incident extraction.
 7.  **Geocode:** Normalize any usable location text into coordinates.
 8.  **Store:** Upsert the normalized incident into Supabase/PostGIS.
@@ -39,14 +39,15 @@ The ingest pipeline is implemented in **Node.js + TypeScript**.
 *   The worker must tolerate duplicate polling results.
 *   The worker must not assume a fixed audio file extension.
 *   The OpenMHz-specific fetch logic should live behind a small internal adapter boundary.
-*   The speech-to-text logic should live behind a provider interface with xAI as primary and OpenAI as fallback.
+*   The speech-to-text logic should live behind a provider interface that supports local Whisper plus hosted provider fallback.
 
 ## 5. Minimal Validation Checklist
 
 *   Confirm a recent call can be discovered.
 *   Confirm its audio can be downloaded.
-*   Confirm xAI STT returns usable text for a representative sample of calls.
-*   Confirm OpenAI fallback STT works when the primary provider is disabled or fails.
+*   If local Whisper is enabled, confirm local transcription returns usable text for a representative sample.
+*   Confirm xAI STT returns usable text when local Whisper is disabled or unavailable.
+*   Confirm OpenAI fallback STT works when upstream providers are disabled or fail.
 *   Confirm the extraction model returns valid JSON.
 *   Confirm a resulting incident row can be written to Supabase.
 

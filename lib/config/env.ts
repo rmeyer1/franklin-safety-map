@@ -4,6 +4,21 @@ import { z } from "zod";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
+const envBooleanSchema = z.preprocess((value) => {
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["1", "true", "yes", "on"].includes(normalized)) {
+      return true;
+    }
+
+    if (["0", "false", "no", "off", ""].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return value;
+}, z.boolean());
+
 const envSchema = z.object({
   INGEST_SOURCE: z.enum(["openmhz"]).default("openmhz"),
   OPENMHZ_SYSTEM: z.string().default("frkoh"),
@@ -16,6 +31,11 @@ const envSchema = z.object({
   OPENMHZ_WEB_BASE_URL: z.string().default("https://openmhz.com"),
   OPENMHZ_POLL_LOOKBACK_MS: z.coerce.number().int().min(0).default(5000),
   OPENMHZ_TALKGROUP_ALLOWLIST: z.string().optional(),
+  WHISPER_LOCAL_ENABLED: envBooleanSchema.default(false),
+  WHISPER_COMMAND: z.string().default("whisper"),
+  WHISPER_MODEL: z.string().default("turbo"),
+  WHISPER_LANGUAGE: z.string().trim().default("en"),
+  WHISPER_EXTRA_ARGS: z.string().trim().default(""),
   XAI_API_KEY: z.string().optional(),
   XAI_STT_MODEL: z.string().default("grok-2-stt"),
   OPENAI_API_KEY: z.string().optional(),

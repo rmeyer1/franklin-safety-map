@@ -3,9 +3,12 @@ import { createIncidentRepository } from "@/lib/repositories/incidents";
 import { closeDbPool } from "@/lib/server/db";
 import { createIncidentExtractionService } from "@/lib/services/extract-incident";
 import { createSourceAdapter } from "@/lib/sources";
-import { createTranscriptionService } from "@/lib/services/transcribe-audio";
+import {
+  createTranscriptionService,
+  TranscriptionFailedError,
+} from "@/lib/services/transcribe-audio";
 import { getEnv } from "@/lib/config/env";
-import type { IngestCursor, SourceCall } from "@/lib/types/domain";
+import type { IngestCursor, SourceCall, Transcription } from "@/lib/types/domain";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -40,6 +43,42 @@ async function downloadAudio(
   };
 }
 
+function inferFileExtension(url: string, mimeType: string): string {
+  const pathname = new URL(url).pathname.toLowerCase();
+  const dotIndex = pathname.lastIndexOf(".");
+  if (dotIndex > pathname.lastIndexOf("/")) {
+    const fromUrl = pathname.slice(dotIndex + 1);
+    if (fromUrl.length > 0 && fromUrl.length <= 8) {
+      return fromUrl;
+    }
+  }
+
+  switch (mimeType) {
+    case "audio/wav":
+      return "wav";
+    case "audio/mp4":
+      return "m4a";
+    case "audio/ogg":
+      return "ogg";
+    case "audio/webm":
+      return "webm";
+    default:
+      return "mp3";
+  }
+}
+
+async function advanceCursorForCall(
+  deps: WorkerDeps,
+  call: SourceCall,
+): Promise<void> {
+  await deps.cursorRepository.set({
+    source: deps.sourceAdapter.source,
+    cursorKey: deps.sourceAdapter.cursorKey,
+    lastOccurredAtMs: call.occurredAtMs,
+    lastSourceEventId: call.sourceEventId,
+  });
+}
+
 type WorkerDeps = {
   sourceAdapter: ReturnType<typeof createSourceAdapter>;
   cursorRepository: ReturnType<typeof createIngestCursorRepository>;
@@ -68,10 +107,11 @@ async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
   } = deps;
 
   let transcriptText = call.transcriptText;
-  let transcriptionProvider: "xai" | "openai" | "source" = "source";
+  let transcriptionProvider: Transcription["provider"] | "source" = "source";
 
   if (!transcriptText) {
     if (!call.audioUrl) {
+      await advanceCursorForCall(deps, call);
       console.log(
         JSON.stringify({
           source: call.source,
@@ -84,11 +124,34 @@ async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
     }
 
     const { audio, mimeType } = await downloadAudio(call.audioUrl);
-    const transcription = await transcriptionService.transcribe({
-      audio,
-      fileName: call.fileName ?? `${call.sourceEventId}.audio`,
-      mimeType,
-    });
+    const fallbackFileName = `${call.sourceEventId}.${inferFileExtension(call.audioUrl, mimeType)}`;
+    let transcription;
+
+    try {
+      transcription = await transcriptionService.transcribe({
+        audio,
+        fileName: call.fileName ?? fallbackFileName,
+        mimeType,
+      });
+    } catch (error) {
+      if (
+        error instanceof TranscriptionFailedError &&
+        error.kind === "no_speech"
+      ) {
+        await advanceCursorForCall(deps, call);
+        console.log(
+          JSON.stringify({
+            source: call.source,
+            sourceEventId: call.sourceEventId,
+            skipped: true,
+            reason: "no_speech_detected",
+          }),
+        );
+        return;
+      }
+
+      throw error;
+    }
 
     transcriptText = transcription.text;
     transcriptionProvider = transcription.provider;
@@ -122,12 +185,7 @@ async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
     },
   });
 
-  await cursorRepository.set({
-    source: sourceAdapter.source,
-    cursorKey: sourceAdapter.cursorKey,
-    lastOccurredAtMs: call.occurredAtMs,
-    lastSourceEventId: call.sourceEventId,
-  });
+  await advanceCursorForCall(deps, call);
 
   console.log(
     JSON.stringify({

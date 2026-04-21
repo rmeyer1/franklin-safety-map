@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: franklin-safety-adapter
+    runtime: node
+    plan: starter
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: INGEST_SOURCE
+        value: openmhz
+      - key: OPENMHZ_SYSTEM
+        value: frkoh
+      - key: OPENMHZ_API_BASE_URL
+        value: https://api.openmhz.com
+      - key: OPENMHZ_ADAPTER_MODE
+        value: direct
+      - key: OPENMHZ_POLL_LOOKBACK_MS
+        value: "5000"
+
+  - type: worker
+    name: franklin-safety-worker
+    runtime: node
+    plan: starter
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    startCommand: npm run worker:loop
+    maxShutdownDelaySeconds: 120
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: INGEST_SOURCE
+        value: openmhz
+      - key: OPENMHZ_SYSTEM
+        value: frkoh
+      - key: OPENMHZ_ADAPTER_BASE_URL
+        sync: false
+      - key: OPENMHZ_ADAPTER_CALLS_PATH
+        value: /api/ingest/openmhz/calls
+      - key: WORKER_POLL_INTERVAL_MS
+        value: "10000"
+      - key: WORKER_ERROR_BACKOFF_MS
+        value: "30000"
+      - key: WORKER_MAX_CALLS_PER_RUN
+        value: "10"
+      - key: XAI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_DB_URL
+        sync: false

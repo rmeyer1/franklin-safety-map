@@ -26,7 +26,7 @@ The ingest pipeline is implemented in **Node.js + TypeScript**.
 3.  **Download audio:** Fetch the audio file for each newly discovered call.
 4.  **Transcribe (local-first optional):** If `WHISPER_LOCAL_ENABLED=true`, run **local Whisper CLI** first on the worker host.
 5.  **Fallback chain:** If local Whisper is disabled or returns unusable output, retry with **xAI Speech-to-Text**, then **OpenAI STT**.
-6.  **Extract structure:** Send the transcript to Ollama Cloud for incident extraction.
+6.  **Classify and extract structure:** Resolve known radio/call-sign codes from the codebook, then run structured extraction (Ollama when enabled, heuristic fallback always available).
 7.  **Geocode:** Normalize any usable location text into coordinates.
 8.  **Store:** Upsert the normalized incident into Supabase/PostGIS.
 9.  **Publish:** Return incidents through the map feed used by the frontend.
@@ -40,6 +40,8 @@ The ingest pipeline is implemented in **Node.js + TypeScript**.
 *   The worker must not assume a fixed audio file extension.
 *   The OpenMHz-specific fetch logic should live behind a small internal adapter boundary.
 *   The speech-to-text logic should live behind a provider interface that supports local Whisper plus hosted provider fallback.
+*   Radio code/call-sign mappings should be maintained in a versioned codebook (`data/radio-codes/*.json`) and applied before/alongside LLM extraction.
+*   Extraction output must conform to a strict schema (incident type, category, status hint, confidence, matched codes).
 
 ## 5. Minimal Validation Checklist
 
@@ -48,7 +50,8 @@ The ingest pipeline is implemented in **Node.js + TypeScript**.
 *   If local Whisper is enabled, confirm local transcription returns usable text for a representative sample.
 *   Confirm xAI STT returns usable text when local Whisper is disabled or unavailable.
 *   Confirm OpenAI fallback STT works when upstream providers are disabled or fail.
-*   Confirm the extraction model returns valid JSON.
+*   Confirm codebook matches are present in incident metadata when known codes are spoken.
+*   Confirm extraction returns schema-valid output and falls back to heuristic parsing if LLM extraction fails.
 *   Confirm a resulting incident row can be written to Supabase.
 
 ## 6. Production Note

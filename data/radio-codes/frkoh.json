@@ -1,0 +1,1294 @@
+{
+  "system": "frkoh",
+  "version": "researched-v3-2026-04-21",
+  "notes": [
+    "This codebook is scoped to the OpenMHz frkoh feed, which aligns with Warren County, Ohio / county number 83, not Franklin County, Ohio.",
+    "Incident code meanings are aligned to the published Buckeye State Sheriffs Association (BSSA) table and cross-checked against neighboring Clinton County's BSSA-derived list where wording differs.",
+    "Agency and phonetic unit designators are seeded from the Warren County, Ohio RadioReference wiki page.",
+    "Normalized categories and severities are application-level inferences layered on top of the published code meaning; they are not official BSSA fields.",
+    "Plain-language transcript cues should outrank bare numeric tokens when the audio appears to contain unit numbers, fire station numbers, or status traffic."
+  ],
+  "sources": [
+    {
+      "name": "RadioReference Wiki - Buckeye State Sheriffs Association (OH)",
+      "url": "https://wiki.radioreference.com/index.php/Buckeye_State_Sheriffs_Association_%28BSSA%29_%28OH%29"
+    },
+    {
+      "name": "RadioReference Wiki - Warren County (OH)",
+      "url": "https://wiki.radioreference.com/index.php/Warren_County_%28OH%29"
+    },
+    {
+      "name": "RadioReference Wiki - Clinton County (OH)",
+      "url": "https://wiki.radioreference.com/index.php/Clinton_County_%28OH%29"
+    },
+    {
+      "name": "OhioPD Signals Reference",
+      "url": "https://ohiopd.com/signals.pdf"
+    }
+  ],
+  "entries": [
+    {
+      "code": "2",
+      "meaning": "Property damage accident",
+      "role": "incident",
+      "category": "Crash",
+      "severity": 2,
+      "aliases": [
+        "code 2",
+        "signal 2"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "2A",
+      "meaning": "Property damage hit-skip",
+      "role": "incident",
+      "category": "Hit-Skip Crash",
+      "severity": 3,
+      "aliases": [
+        "2a",
+        "2 a",
+        "code 2a",
+        "signal 2a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "4",
+      "meaning": "Injury accident",
+      "role": "incident",
+      "category": "Injury Crash",
+      "severity": 4,
+      "aliases": [
+        "code 4",
+        "signal 4"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "4A",
+      "meaning": "Injury hit-skip",
+      "role": "incident",
+      "category": "Hit-Skip Injury Crash",
+      "severity": 4,
+      "aliases": [
+        "4a",
+        "4 a",
+        "code 4a",
+        "signal 4a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "6",
+      "meaning": "Aircraft crash",
+      "role": "incident",
+      "category": "Aircraft Incident",
+      "severity": 5,
+      "aliases": [
+        "code 6",
+        "signal 6"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "8",
+      "meaning": "Assault",
+      "role": "incident",
+      "category": "Assault",
+      "severity": 4,
+      "aliases": [
+        "code 8",
+        "signal 8"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "10",
+      "meaning": "Assist other unit",
+      "role": "incident",
+      "category": "Assist Other Unit",
+      "severity": 2,
+      "aliases": [
+        "code 10",
+        "signal 10"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "12",
+      "meaning": "Burglary",
+      "role": "incident",
+      "category": "Burglary",
+      "severity": 4,
+      "aliases": [
+        "code 12",
+        "signal 12"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "12A",
+      "meaning": "Burglary in progress",
+      "role": "incident",
+      "category": "Burglary In Progress",
+      "severity": 5,
+      "aliases": [
+        "12a",
+        "12 a",
+        "code 12a",
+        "signal 12a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "14",
+      "meaning": "Bad check/forgery",
+      "role": "incident",
+      "category": "Fraud",
+      "severity": 2,
+      "aliases": [
+        "code 14",
+        "signal 14"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "16",
+      "meaning": "DOA",
+      "role": "incident",
+      "category": "Death Investigation",
+      "severity": 4,
+      "aliases": [
+        "code 16",
+        "signal 16"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "18",
+      "meaning": "Dog bite",
+      "role": "incident",
+      "category": "Animal Bite",
+      "severity": 2,
+      "aliases": [
+        "code 18",
+        "signal 18"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "18A",
+      "meaning": "Animal complaint",
+      "role": "incident",
+      "category": "Animal Complaint",
+      "severity": 1,
+      "aliases": [
+        "18a",
+        "18 a",
+        "code 18a",
+        "signal 18a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "20",
+      "meaning": "Domestic complaint",
+      "role": "incident",
+      "category": "Domestic Disturbance",
+      "severity": 4,
+      "aliases": [
+        "code 20",
+        "signal 20"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "20A",
+      "meaning": "Neighbor complaint",
+      "role": "incident",
+      "category": "Neighbor Complaint",
+      "severity": 1,
+      "aliases": [
+        "20a",
+        "20 a",
+        "code 20a",
+        "signal 20a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "22",
+      "meaning": "Drowning",
+      "role": "incident",
+      "category": "Water Rescue",
+      "severity": 5,
+      "aliases": [
+        "code 22",
+        "signal 22"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "24",
+      "meaning": "Drunk",
+      "role": "incident",
+      "category": "Intoxicated Subject",
+      "severity": 2,
+      "aliases": [
+        "code 24",
+        "signal 24"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "26",
+      "meaning": "Fight",
+      "role": "incident",
+      "category": "Fight",
+      "severity": 3,
+      "aliases": [
+        "code 26",
+        "signal 26"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "28",
+      "meaning": "Fire",
+      "role": "incident",
+      "category": "Fire",
+      "severity": 4,
+      "aliases": [
+        "code 28",
+        "signal 28"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "28A",
+      "meaning": "Vehicle fire",
+      "role": "incident",
+      "category": "Vehicle Fire",
+      "severity": 4,
+      "aliases": [
+        "28a",
+        "28 a",
+        "code 28a",
+        "signal 28a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "28B",
+      "meaning": "Structure fire",
+      "role": "incident",
+      "category": "Structure Fire",
+      "severity": 5,
+      "aliases": [
+        "28b",
+        "28 b",
+        "code 28b",
+        "signal 28b"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "28C",
+      "meaning": "Person possibly inside",
+      "role": "incident",
+      "category": "Structure Fire",
+      "severity": 5,
+      "aliases": [
+        "28c",
+        "28 c",
+        "code 28c",
+        "signal 28c"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "28D",
+      "meaning": "Explosion",
+      "role": "incident",
+      "category": "Explosion",
+      "severity": 5,
+      "aliases": [
+        "28d",
+        "28 d",
+        "code 28d",
+        "signal 28d"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "30",
+      "meaning": "Gambling",
+      "role": "incident",
+      "category": "Gambling Complaint",
+      "severity": 1,
+      "aliases": [
+        "code 30",
+        "signal 30"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "32",
+      "meaning": "Homicide",
+      "role": "incident",
+      "category": "Homicide",
+      "severity": 5,
+      "aliases": [
+        "code 32",
+        "signal 32"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "34",
+      "meaning": "Juvenile complaint",
+      "role": "incident",
+      "category": "Juvenile Complaint",
+      "severity": 2,
+      "aliases": [
+        "code 34",
+        "signal 34"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "36",
+      "meaning": "Theft",
+      "role": "incident",
+      "category": "Theft",
+      "severity": 2,
+      "aliases": [
+        "code 36",
+        "signal 36"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "36A",
+      "meaning": "Theft in progress",
+      "role": "incident",
+      "category": "Theft In Progress",
+      "severity": 3,
+      "aliases": [
+        "36a",
+        "36 a",
+        "code 36a",
+        "signal 36a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "38",
+      "meaning": "Missing person",
+      "role": "incident",
+      "category": "Missing Person",
+      "severity": 4,
+      "aliases": [
+        "code 38",
+        "signal 38"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "38A",
+      "meaning": "Missing person returned",
+      "role": "incident",
+      "category": "Missing Person",
+      "severity": 1,
+      "aliases": [
+        "38a",
+        "38 a",
+        "code 38a",
+        "signal 38a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "40",
+      "meaning": "Person with gun",
+      "role": "incident",
+      "category": "Person with Weapon",
+      "severity": 5,
+      "aliases": [
+        "code 40",
+        "signal 40"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "40A",
+      "meaning": "Person with knife",
+      "role": "incident",
+      "category": "Person with Weapon",
+      "severity": 4,
+      "aliases": [
+        "40a",
+        "40 a",
+        "code 40a",
+        "signal 40a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "42",
+      "meaning": "Nature unknown",
+      "role": "incident",
+      "category": "Unknown Trouble",
+      "severity": 2,
+      "aliases": [
+        "code 42",
+        "signal 42"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "44",
+      "meaning": "Officer in trouble",
+      "role": "incident",
+      "category": "Officer Emergency",
+      "severity": 5,
+      "aliases": [
+        "code 44",
+        "signal 44"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "46",
+      "meaning": "Prowlers",
+      "role": "incident",
+      "category": "Suspicious Activity",
+      "severity": 2,
+      "aliases": [
+        "code 46",
+        "signal 46"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "48",
+      "meaning": "Rape",
+      "role": "incident",
+      "category": "Sexual Assault",
+      "severity": 5,
+      "aliases": [
+        "code 48",
+        "signal 48"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "48A",
+      "meaning": "Sex offense",
+      "role": "incident",
+      "category": "Sex Offense",
+      "severity": 4,
+      "aliases": [
+        "48a",
+        "48 a",
+        "code 48a",
+        "signal 48a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "48B",
+      "meaning": "Exposing",
+      "role": "incident",
+      "category": "Sex Offense",
+      "severity": 2,
+      "aliases": [
+        "48b",
+        "48 b",
+        "code 48b",
+        "signal 48b"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "50",
+      "meaning": "Robbery",
+      "role": "incident",
+      "category": "Robbery",
+      "severity": 4,
+      "aliases": [
+        "code 50",
+        "signal 50"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "50A",
+      "meaning": "Robbery in progress",
+      "role": "incident",
+      "category": "Robbery In Progress",
+      "severity": 5,
+      "aliases": [
+        "50a",
+        "50 a",
+        "code 50a",
+        "signal 50a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "52",
+      "meaning": "Shooting",
+      "role": "incident",
+      "category": "Shooting",
+      "severity": 5,
+      "aliases": [
+        "code 52",
+        "signal 52"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "52A",
+      "meaning": "Shots fired",
+      "role": "incident",
+      "category": "Shots Fired",
+      "severity": 5,
+      "aliases": [
+        "52a",
+        "52 a",
+        "code 52a",
+        "signal 52a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "52B",
+      "meaning": "Hunters/target shooters",
+      "role": "incident",
+      "category": "Weapons Complaint",
+      "severity": 1,
+      "aliases": [
+        "52b",
+        "52 b",
+        "code 52b",
+        "signal 52b"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "54",
+      "meaning": "Stabbing or cutting",
+      "role": "incident",
+      "category": "Stabbing",
+      "severity": 5,
+      "aliases": [
+        "code 54",
+        "signal 54"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "56",
+      "meaning": "Stolen vehicle",
+      "role": "incident",
+      "category": "Stolen Vehicle",
+      "severity": 3,
+      "aliases": [
+        "code 56",
+        "signal 56"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "56A",
+      "meaning": "Recovered stolen vehicle",
+      "role": "incident",
+      "category": "Vehicle Recovery",
+      "severity": 1,
+      "aliases": [
+        "56a",
+        "56 a",
+        "code 56a",
+        "signal 56a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "56B",
+      "meaning": "Wanted vehicle",
+      "role": "incident",
+      "category": "Wanted Vehicle",
+      "severity": 3,
+      "aliases": [
+        "56b",
+        "56 b",
+        "code 56b",
+        "signal 56b"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "58",
+      "meaning": "Suicide",
+      "role": "incident",
+      "category": "Suicidal Subject",
+      "severity": 5,
+      "aliases": [
+        "code 58",
+        "signal 58"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "58A",
+      "meaning": "Suicide attempt",
+      "role": "incident",
+      "category": "Suicidal Subject",
+      "severity": 5,
+      "aliases": [
+        "58a",
+        "58 a",
+        "code 58a",
+        "signal 58a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "60",
+      "meaning": "Suspicious person",
+      "role": "incident",
+      "category": "Suspicious Activity",
+      "severity": 2,
+      "aliases": [
+        "code 60",
+        "signal 60"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "60A",
+      "meaning": "Suspicious vehicle",
+      "role": "incident",
+      "category": "Suspicious Vehicle",
+      "severity": 2,
+      "aliases": [
+        "60a",
+        "60 a",
+        "code 60a",
+        "signal 60a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "62",
+      "meaning": "Traffic detail",
+      "role": "incident",
+      "category": "Traffic Detail",
+      "severity": 1,
+      "aliases": [
+        "code 62",
+        "signal 62"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "64",
+      "meaning": "Vandalism",
+      "role": "incident",
+      "category": "Vandalism",
+      "severity": 2,
+      "aliases": [
+        "code 64",
+        "signal 64"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "66",
+      "meaning": "Escape or jailbreak",
+      "role": "incident",
+      "category": "Escape",
+      "severity": 5,
+      "aliases": [
+        "code 66",
+        "signal 66"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "68",
+      "meaning": "Livestock on roadway",
+      "role": "incident",
+      "category": "Road Hazard",
+      "severity": 1,
+      "aliases": [
+        "code 68",
+        "signal 68"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "70",
+      "meaning": "Emergency notification",
+      "role": "incident",
+      "category": "Emergency Notification",
+      "severity": 2,
+      "aliases": [
+        "code 70",
+        "signal 70"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "72",
+      "meaning": "Threats or harassment",
+      "role": "incident",
+      "category": "Threats / Harassment",
+      "severity": 3,
+      "aliases": [
+        "code 72",
+        "signal 72"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "74",
+      "meaning": "Hazmat incident",
+      "role": "incident",
+      "category": "Hazmat",
+      "severity": 5,
+      "aliases": [
+        "code 74",
+        "signal 74"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "76",
+      "meaning": "Mental",
+      "role": "incident",
+      "category": "Mental Health Crisis",
+      "severity": 4,
+      "aliases": [
+        "code 76",
+        "signal 76"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "78",
+      "meaning": "Alarm drop",
+      "role": "incident",
+      "category": "Alarm",
+      "severity": 1,
+      "aliases": [
+        "code 78",
+        "signal 78"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "80",
+      "meaning": "Traffic jam/road blocked",
+      "role": "incident",
+      "category": "Road Blocked",
+      "severity": 2,
+      "aliases": [
+        "code 80",
+        "signal 80"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "82",
+      "meaning": "Disabled vehicle",
+      "role": "incident",
+      "category": "Disabled Vehicle",
+      "severity": 1,
+      "aliases": [
+        "code 82",
+        "signal 82"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "82A",
+      "meaning": "Abandoned vehicle",
+      "role": "incident",
+      "category": "Abandoned Vehicle",
+      "severity": 1,
+      "aliases": [
+        "82a",
+        "82 a",
+        "code 82a",
+        "signal 82a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "84",
+      "meaning": "Open door",
+      "role": "incident",
+      "category": "Security Check",
+      "severity": 1,
+      "aliases": [
+        "code 84",
+        "signal 84"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "84A",
+      "meaning": "Open window",
+      "role": "incident",
+      "category": "Security Check",
+      "severity": 1,
+      "aliases": [
+        "84a",
+        "84 a",
+        "code 84a",
+        "signal 84a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "86",
+      "meaning": "Traffic offense",
+      "role": "incident",
+      "category": "Traffic Complaint",
+      "severity": 1,
+      "aliases": [
+        "code 86",
+        "signal 86"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "86A",
+      "meaning": "Motorcycle/ATV complaint",
+      "role": "incident",
+      "category": "Traffic Complaint",
+      "severity": 1,
+      "aliases": [
+        "86a",
+        "86 a",
+        "code 86a",
+        "signal 86a"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "88",
+      "meaning": "Bomb threat",
+      "role": "incident",
+      "category": "Bomb Threat",
+      "severity": 5,
+      "aliases": [
+        "code 88",
+        "signal 88"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "90",
+      "meaning": "Train derailment",
+      "role": "incident",
+      "category": "Rail Incident",
+      "severity": 5,
+      "aliases": [
+        "code 90",
+        "signal 90"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Published BSSA code meaning; category and severity are local normalization fields."
+    },
+    {
+      "code": "25R",
+      "meaning": "Return to headquarters",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "clear",
+      "aliases": [
+        "return to headquarters",
+        "return hq"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 25."
+    },
+    {
+      "code": "33S",
+      "meaning": "In service",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": [
+        "in service",
+        "show me 33",
+        "show me signal 33",
+        "signal 33"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 33."
+    },
+    {
+      "code": "35S",
+      "meaning": "On patrol",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": [
+        "on patrol",
+        "signal 35"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 35."
+    },
+    {
+      "code": "37S",
+      "meaning": "Out of service",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "clear",
+      "aliases": [
+        "out of service",
+        "signal 37"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 37."
+    },
+    {
+      "code": "41S",
+      "meaning": "One unit in radio contact",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": [
+        "one unit in radio contact",
+        "in contact"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 41."
+    },
+    {
+      "code": "61S",
+      "meaning": "Pick up other unit",
+      "role": "resource",
+      "category": null,
+      "severity": 1,
+      "aliases": [
+        "pick up other unit"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 61."
+    },
+    {
+      "code": "63S",
+      "meaning": "Investigation or follow up",
+      "role": "status",
+      "category": null,
+      "severity": null,
+      "statusHint": "update",
+      "aliases": [
+        "investigation or follow up",
+        "follow up"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 63."
+    },
+    {
+      "code": "65D",
+      "meaning": "K9 unit",
+      "role": "resource",
+      "category": null,
+      "severity": 2,
+      "aliases": [
+        "k9 unit",
+        "k-9 unit",
+        "canine unit"
+      ],
+      "source": "RadioReference BSSA (OH)",
+      "notes": "Synthetic phrase key for published BSSA Signal 65D."
+    },
+    {
+      "code": "ADAM",
+      "meaning": "Carlisle Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "adam unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "BAKER",
+      "meaning": "Morrow Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "baker unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "CHARLES",
+      "meaning": "Mason Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "charles unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "EDWARD",
+      "meaning": "Hamilton Township Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "edward unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "FRANK",
+      "meaning": "Franklin Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "frank unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "GEORGE",
+      "meaning": "Ohio Department of Natural Resources game warden unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "george unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "HENRY",
+      "meaning": "Harveysburg Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "henry unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "KING",
+      "meaning": "Kings Island Public Safety unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "king unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "LINCOLN",
+      "meaning": "Clearcreek Township Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "lincoln unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "PAUL",
+      "meaning": "Warren County Sheriff's Office patrol unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "paul unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "ROBERT",
+      "meaning": "ODNR ranger at Caesar Creek unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "robert unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "TOM",
+      "meaning": "Warren County Sheriff's Office traffic unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "tom unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "VICTOR",
+      "meaning": "Mainville Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "victor unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "WILLIAM",
+      "meaning": "Waynesville Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "william unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "XRAY",
+      "meaning": "SWAT team unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "xray unit",
+        "x-ray",
+        "x ray"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "YOUNG",
+      "meaning": "Warren County Adult Probation unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "young unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    },
+    {
+      "code": "ZEBRA",
+      "meaning": "Springboro Police Department unit designator",
+      "role": "unit",
+      "category": null,
+      "severity": null,
+      "aliases": [
+        "zebra unit"
+      ],
+      "source": "RadioReference Warren County (OH)",
+      "notes": "Local agency phonetic identifier"
+    }
+  ]
+}

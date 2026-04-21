@@ -144,6 +144,11 @@ function buildAllowedTalkgroups(envValue?: string): Set<number> | null {
 
 export class OpenMhzHttpClient implements OpenMhzClient {
   private talkgroupsCache?: OpenMhzTalkgroupMap;
+  private readonly requestHeaders: HeadersInit = {
+    Accept: "application/json, text/plain;q=0.9, */*;q=0.8",
+    "User-Agent":
+      "Mozilla/5.0 (compatible; franklin-safety-map-ingest/1.0)",
+  };
 
   constructor(
     private readonly system = getEnv().OPENMHZ_SYSTEM,
@@ -198,7 +203,7 @@ export class OpenMhzHttpClient implements OpenMhzClient {
     }
 
     const response = await fetch(url, {
-      headers: { Accept: "application/json" },
+      headers: this.requestHeaders,
       cache: "no-store",
     });
 

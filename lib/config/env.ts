@@ -7,8 +7,8 @@ dotenv.config();
 const envSchema = z.object({
   INGEST_SOURCE: z.enum(["openmhz"]).default("openmhz"),
   OPENMHZ_SYSTEM: z.string().default("frkoh"),
-  OPENMHZ_API_BASE_URL: z.string().optional(),
-  OPENMHZ_ADAPTER_BASE_URL: z.string().optional(),
+  OPENMHZ_API_BASE_URL: z.string().trim().optional(),
+  OPENMHZ_ADAPTER_BASE_URL: z.string().trim().optional(),
   OPENMHZ_ADAPTER_CALLS_PATH: z.string().default("/api/ingest/openmhz/calls"),
   OPENMHZ_ADAPTER_MODE: z.enum(["direct", "fixture"]).default("direct"),
   OPENMHZ_ADAPTER_TOKEN: z.string().optional(),

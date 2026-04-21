@@ -6,6 +6,8 @@ This document provides a structured execution path for the development team. The
 *Goal: Establish the software-only ingest path.*
 
 - [ ] **OpenMHz Source Validation:** Confirm the Franklin County (`frkoh`) source provides the call metadata and downloadable audio needed by the worker.
+- [x] **Source Adapter Abstraction:** Refactor ingest around a normalized `SourceAdapter` / `SourceCall` contract so the worker is not coupled to one upstream provider.
+- [ ] **Source Risk Gate:** Decide whether OpenMHz is production-viable, validation-only, or needs to be replaced by another controlled source path before expanding downstream AI work.
 - [ ] **TypeScript Worker Skeleton:** Stand up the Node.js + TypeScript worker runtime and shared config.
 - [ ] **Polling Prototype:** Implement a worker loop that can detect new calls and persist polling state.
 - [ ] **Audio Download Test:** Verify the worker can fetch a recent call audio file end-to-end.
@@ -33,9 +35,12 @@ This document provides a structured execution path for the development team. The
 ## 🟠 Phase 3: The AI-Listener (The "Alpha" Edge)
 *Goal: Transform raw audio into structured geospatial intelligence.*
 
+- [ ] **Source Freeze Decision:**
+    - [ ] Confirm the production source strategy before expanding source-specific ingest logic.
+    - [ ] Keep the worker consuming only the normalized source adapter contract.
 - [ ] **Audio Stream Integration:**
-    - [ ] Complete the OpenMHz -> polling worker ingest chain.
-    - [ ] Implement polling state management in TypeScript using `time` plus call ID deduplication.
+    - [ ] Complete one proven source adapter -> polling worker ingest chain.
+    - [ ] Keep polling state management generic across adapters using `time` plus source event ID deduplication.
 - [ ] **Transcription Pipeline:**
     - [ ] Integrate xAI Speech-to-Text as the default provider.
     - [ ] Integrate OpenAI STT as the fallback provider.
@@ -53,6 +58,7 @@ This document provides a structured execution path for the development team. The
 - The product is software-only and does not include a local radio capture node.
 - The backend and worker stack are Node.js + TypeScript, not Python.
 - OpenMHz access assumptions should be validated before production hardening.
+- The worker should not depend directly on one upstream provider; source-specific fetch logic must stay inside adapter implementations.
 
 ## 🔴 Phase 4: Advanced Geospatial UX (The Terminal)
 *Goal: Transform a map into a professional decision-support tool.*

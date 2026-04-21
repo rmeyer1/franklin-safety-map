@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "worker": "tsx worker/index.ts",
+    "worker:loop": "WORKER_MODE=loop tsx worker/index.ts",
     "openmhz:diagnose": "tsx scripts/diagnose-openmhz.ts",
     "openmhz:validate-capture": "tsx scripts/validate-openmhz-capture.ts",
     "db:migrate": "tsx scripts/migrate.ts",

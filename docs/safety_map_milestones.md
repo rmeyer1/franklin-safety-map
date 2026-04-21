@@ -20,7 +20,7 @@ This document provides a structured execution path for the development team. The
 *Goal: Get the reliable, API-driven data onto the map.*
 
 - [ ] **Transit Layer (COTA):**
-    - [ ] Implement GTFS-Realtime parser in the Railway TypeScript worker.
+    - [ ] Implement GTFS-Realtime parser in the Render TypeScript worker.
     - [ ] Sync live bus positions to Supabase.
     - [ ] Render moving bus markers on the Mapbox UI.
 - [ ] **Traffic Layer (ODOT OHGO):**
@@ -79,4 +79,4 @@ This document provides a structured execution path for the development team. The
 - [ ] **Stress Testing:** Verify the background worker can handle peak-hour radio traffic without lagging.
 - [ ] **Accuracy Audit:** Compare AI-extracted locations against actual official reports to tune prompts.
 - [ ] **UI Polish:** Finalize the "Dark Mode" professional aesthetic.
-- [ ] **Deployment:** Final production push to Vercel/Railway.
+- [ ] **Deployment:** Final production push to Vercel/Render.

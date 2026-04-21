@@ -7,16 +7,21 @@ import { getDbPool } from "@/lib/server/db";
 type IngestCursorRow = {
   source: string;
   cursor_key: string;
-  last_occurred_at_ms: number;
+  last_occurred_at_ms: number | string;
   last_source_event_id: string | null;
   updated_at: string | Date;
 };
 
 function mapRow(row: IngestCursorRow): IngestCursor {
+  const lastOccurredAtMs =
+    typeof row.last_occurred_at_ms === "string"
+      ? Number.parseInt(row.last_occurred_at_ms, 10)
+      : row.last_occurred_at_ms;
+
   return ingestCursorSchema.parse({
     source: row.source,
     cursorKey: row.cursor_key,
-    lastOccurredAtMs: row.last_occurred_at_ms,
+    lastOccurredAtMs,
     lastSourceEventId: row.last_source_event_id,
     updatedAt:
       row.updated_at instanceof Date
@@ -103,4 +108,3 @@ export class PostgresIngestCursorRepository implements IngestCursorRepository {
 export function createIngestCursorRepository(): IngestCursorRepository {
   return new PostgresIngestCursorRepository();
 }
-

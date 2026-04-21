@@ -22,14 +22,15 @@ export class XaiSpeechToTextProvider implements SpeechToTextProvider {
 
     const bytes = new Uint8Array(input.audio);
     const form = new FormData();
+    form.append("format", "true");
+    form.append("language", "en");
     form.append(
       "file",
       new Blob([bytes], { type: input.mimeType }),
       input.fileName,
     );
-    form.append("model", env.XAI_STT_MODEL);
 
-    const response = await fetch("https://api.x.ai/v1/audio/transcriptions", {
+    const response = await fetch("https://api.x.ai/v1/stt", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${env.XAI_API_KEY}`,
@@ -38,7 +39,10 @@ export class XaiSpeechToTextProvider implements SpeechToTextProvider {
     });
 
     if (!response.ok) {
-      throw new Error(`xAI STT request failed with status ${response.status}`);
+      const responseBody = await response.text();
+      throw new Error(
+        `xAI STT request failed with status ${response.status}: ${responseBody.slice(0, 240)}`,
+      );
     }
 
     const payload = (await response.json()) as Record<string, unknown>;

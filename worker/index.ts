@@ -4,6 +4,14 @@ import { closeDbPool } from "@/lib/server/db";
 import { createIncidentExtractionService } from "@/lib/services/extract-incident";
 import { createSourceAdapter } from "@/lib/sources";
 import { createTranscriptionService } from "@/lib/services/transcribe-audio";
+import { getEnv } from "@/lib/config/env";
+import type { IngestCursor, SourceCall } from "@/lib/types/domain";
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 function inferMimeType(url: string, contentType: string | null): string {
   if (contentType && contentType.length > 0) {
@@ -32,96 +40,237 @@ async function downloadAudio(
   };
 }
 
-async function runOnce() {
-  const sourceAdapter = createSourceAdapter();
-  const cursorRepository = createIngestCursorRepository();
-  const incidentRepository = createIncidentRepository();
-  const transcriptionService = createTranscriptionService();
-  const extractionService = createIncidentExtractionService();
+type WorkerDeps = {
+  sourceAdapter: ReturnType<typeof createSourceAdapter>;
+  cursorRepository: ReturnType<typeof createIngestCursorRepository>;
+  incidentRepository: ReturnType<typeof createIncidentRepository>;
+  transcriptionService: ReturnType<typeof createTranscriptionService>;
+  extractionService: ReturnType<typeof createIncidentExtractionService>;
+};
+
+function createWorkerDeps(): WorkerDeps {
+  return {
+    sourceAdapter: createSourceAdapter(),
+    cursorRepository: createIngestCursorRepository(),
+    incidentRepository: createIncidentRepository(),
+    transcriptionService: createTranscriptionService(),
+    extractionService: createIncidentExtractionService(),
+  };
+}
+
+async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
+  const {
+    sourceAdapter,
+    cursorRepository,
+    incidentRepository,
+    transcriptionService,
+    extractionService,
+  } = deps;
+
+  let transcriptText = call.transcriptText;
+  let transcriptionProvider: "xai" | "openai" | "source" = "source";
+
+  if (!transcriptText) {
+    if (!call.audioUrl) {
+      console.log(
+        JSON.stringify({
+          source: call.source,
+          sourceEventId: call.sourceEventId,
+          skipped: true,
+          reason: "missing_audio_and_transcript",
+        }),
+      );
+      return;
+    }
+
+    const { audio, mimeType } = await downloadAudio(call.audioUrl);
+    const transcription = await transcriptionService.transcribe({
+      audio,
+      fileName: call.fileName ?? `${call.sourceEventId}.audio`,
+      mimeType,
+    });
+
+    transcriptText = transcription.text;
+    transcriptionProvider = transcription.provider;
+  }
+
+  const incident = await extractionService.extractFromTranscript(transcriptText);
+
+  const savedIncident = await incidentRepository.upsert({
+    source: call.source,
+    sourceEventId: call.sourceEventId,
+    layer: "police",
+    category: incident.category ?? "Radio Dispatch",
+    address: incident.address ?? call.label ?? "Unknown location",
+    description: incident.summary,
+    severity: incident.severity,
+    status: "Active",
+    occurredAt: call.occurredAt,
+    point: {
+      lat: 39.9612,
+      lng: -82.9988,
+    },
+    metadata: {
+      channel: call.channel,
+      label: call.label,
+      audioUrl: call.audioUrl,
+      durationSeconds: call.durationSeconds,
+      transcript: transcriptText,
+      transcriptionProvider,
+      geocoded: false,
+      sourceMetadata: call.metadata,
+    },
+  });
+
+  await cursorRepository.set({
+    source: sourceAdapter.source,
+    cursorKey: sourceAdapter.cursorKey,
+    lastOccurredAtMs: call.occurredAtMs,
+    lastSourceEventId: call.sourceEventId,
+  });
+
+  console.log(
+    JSON.stringify({
+      source: call.source,
+      sourceEventId: call.sourceEventId,
+      occurredAtMs: call.occurredAtMs,
+      provider: transcriptionProvider,
+      severity: incident.severity,
+      category: incident.category,
+      incidentId: savedIncident.id,
+    }),
+  );
+}
+
+async function processBatch(deps: WorkerDeps): Promise<number> {
+  const { sourceAdapter, cursorRepository } = deps;
+  const env = getEnv();
   const cursor = await cursorRepository.get(
     sourceAdapter.source,
     sourceAdapter.cursorKey,
   );
   const calls = await sourceAdapter.poll(cursor);
+  const unprocessedCalls = calls.filter((call) =>
+    isUnprocessedCall(call, cursor),
+  );
+  const batch = unprocessedCalls.slice(0, env.WORKER_MAX_CALLS_PER_RUN);
 
-  for (const call of calls) {
-    let transcriptText = call.transcriptText;
-    let transcriptionProvider: "xai" | "openai" | "source" = "source";
-
-    if (!transcriptText) {
-      if (!call.audioUrl) {
-        console.log(
-          JSON.stringify({
-            source: call.source,
-            sourceEventId: call.sourceEventId,
-            skipped: true,
-            reason: "missing_audio_and_transcript",
-          }),
-        );
-        continue;
-      }
-
-      const { audio, mimeType } = await downloadAudio(call.audioUrl);
-      const transcription = await transcriptionService.transcribe({
-        audio,
-        fileName: call.fileName ?? `${call.sourceEventId}.audio`,
-        mimeType,
-      });
-
-      transcriptText = transcription.text;
-      transcriptionProvider = transcription.provider;
-    }
-
-    const incident = await extractionService.extractFromTranscript(transcriptText);
-
-    const savedIncident = await incidentRepository.upsert({
-      source: call.source,
-      sourceEventId: call.sourceEventId,
-      layer: "police",
-      category: incident.category ?? "Radio Dispatch",
-      address: incident.address ?? call.label ?? "Unknown location",
-      description: incident.summary,
-      severity: incident.severity,
-      status: "Active",
-      occurredAt: call.occurredAt,
-      point: {
-        lat: 39.9612,
-        lng: -82.9988,
-      },
-      metadata: {
-        channel: call.channel,
-        label: call.label,
-        audioUrl: call.audioUrl,
-        durationSeconds: call.durationSeconds,
-        transcript: transcriptText,
-        transcriptionProvider,
-        geocoded: false,
-        sourceMetadata: call.metadata,
-      },
-    });
-
-    await cursorRepository.set({
-      source: sourceAdapter.source,
-      cursorKey: sourceAdapter.cursorKey,
-      lastOccurredAtMs: call.occurredAtMs,
-      lastSourceEventId: call.sourceEventId,
-    });
-
+  if (unprocessedCalls.length > batch.length) {
     console.log(
       JSON.stringify({
-        source: call.source,
-        sourceEventId: call.sourceEventId,
-        occurredAtMs: call.occurredAtMs,
-        provider: transcriptionProvider,
-        severity: incident.severity,
-        category: incident.category,
-        incidentId: savedIncident.id,
+        source: sourceAdapter.source,
+        cursorKey: sourceAdapter.cursorKey,
+        fetched: calls.length,
+        unprocessed: unprocessedCalls.length,
+        processed: batch.length,
+        remaining: unprocessedCalls.length - batch.length,
+        note: "batch_limited",
       }),
     );
   }
+
+  for (const call of batch) {
+    await processCall(deps, call);
+  }
+
+  return batch.length;
 }
 
-runOnce()
+function isUnprocessedCall(
+  call: SourceCall,
+  cursor: IngestCursor | null,
+): boolean {
+  if (!cursor) {
+    return true;
+  }
+
+  if (call.occurredAtMs > cursor.lastOccurredAtMs) {
+    return true;
+  }
+
+  if (call.occurredAtMs < cursor.lastOccurredAtMs) {
+    return false;
+  }
+
+  return call.sourceEventId !== cursor.lastSourceEventId;
+}
+
+async function runOnce(deps: WorkerDeps) {
+  await processBatch(deps);
+}
+
+async function runLoop(deps: WorkerDeps) {
+  const env = getEnv();
+  let shuttingDown = false;
+  const onSignal = () => {
+    shuttingDown = true;
+  };
+
+  process.on("SIGINT", onSignal);
+  process.on("SIGTERM", onSignal);
+
+  try {
+    while (!shuttingDown) {
+      const startedAt = Date.now();
+      try {
+        const processedCount = await processBatch(deps);
+        console.log(
+          JSON.stringify({
+            mode: "loop",
+            processedCount,
+            elapsedMs: Date.now() - startedAt,
+          }),
+        );
+      } catch (error) {
+        console.error(error);
+        if (shuttingDown) {
+          break;
+        }
+
+        console.log(
+          JSON.stringify({
+            mode: "loop",
+            status: "error_backoff",
+            backoffMs: env.WORKER_ERROR_BACKOFF_MS,
+          }),
+        );
+        await sleep(env.WORKER_ERROR_BACKOFF_MS);
+        continue;
+      }
+
+      if (shuttingDown) {
+        break;
+      }
+
+      await sleep(env.WORKER_POLL_INTERVAL_MS);
+    }
+  } finally {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+  }
+}
+
+async function main() {
+  const env = getEnv();
+  const deps = createWorkerDeps();
+
+  if (env.WORKER_MODE === "loop") {
+    console.log(
+      JSON.stringify({
+        mode: "loop",
+        pollIntervalMs: env.WORKER_POLL_INTERVAL_MS,
+        errorBackoffMs: env.WORKER_ERROR_BACKOFF_MS,
+        maxCallsPerRun: env.WORKER_MAX_CALLS_PER_RUN,
+      }),
+    );
+    await runLoop(deps);
+    return;
+  }
+
+  await runOnce(deps);
+}
+
+main()
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;

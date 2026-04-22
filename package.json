@@ -15,7 +15,8 @@
     "openmhz:diagnose": "tsx scripts/diagnose-openmhz.ts",
     "openmhz:validate-capture": "tsx scripts/validate-openmhz-capture.ts",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:seed": "tsx scripts/seed-mock-incidents.ts"
+    "db:seed": "tsx scripts/seed-mock-incidents.ts",
+    "db:reenqueue": "tsx scripts/reenqueue.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.80.0",

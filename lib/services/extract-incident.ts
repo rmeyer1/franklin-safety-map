@@ -323,7 +323,12 @@ async function runOllamaExtraction(input: {
     `${env.OLLAMA_API_URL.replace(/\/$/, "")}/api/generate`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(env.OLLAMA_API_KEY
+          ? { Authorization: `Bearer ${env.OLLAMA_API_KEY}` }
+          : {}),
+      },
       body: JSON.stringify({
         model: env.OLLAMA_MODEL,
         prompt: buildPrompt(

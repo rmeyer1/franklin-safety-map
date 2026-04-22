@@ -46,6 +46,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_STT_MODEL: z.string().default("gpt-4o-mini-transcribe"),
   OLLAMA_API_URL: z.string().optional(),
+  OLLAMA_API_KEY: z.string().optional(),
   OLLAMA_MODEL: z.string().default("llama3.1:8b"),
   SUPABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),

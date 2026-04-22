@@ -106,13 +106,17 @@ test("falls back to heuristic extraction with explicit metadata when ollama is u
 test("returns validated ollama extraction metadata when model output is well-formed", async () => {
   process.env.INCIDENT_EXTRACTION_PROVIDER = "ollama";
   process.env.OLLAMA_API_URL = "https://example.test";
+  process.env.OLLAMA_API_KEY = "test-ollama-key";
   process.env.OLLAMA_MODEL = "llama-test";
   process.env.EXTRACTION_PROMPT_VERSION = "v-test";
   resetEnvCache();
 
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () =>
-    new Response(
+  let capturedAuthorizationHeader: string | null = null;
+  globalThis.fetch = async (_input, init) => {
+    capturedAuthorizationHeader = new Headers(init?.headers).get("Authorization");
+
+    return new Response(
       JSON.stringify({
         response: JSON.stringify({
           incidentType: "Theft",
@@ -131,6 +135,7 @@ test("returns validated ollama extraction metadata when model output is well-for
         headers: { "Content-Type": "application/json" },
       },
     );
+  };
 
   try {
     const service = createIncidentExtractionService();
@@ -145,10 +150,12 @@ test("returns validated ollama extraction metadata when model output is well-for
     assert.equal(result.metadata.fallbackUsed, false);
     assert.equal(result.metadata.validated, true);
     assert.ok(result.metadata.rawPayload);
+    assert.equal(capturedAuthorizationHeader, "Bearer test-ollama-key");
   } finally {
     globalThis.fetch = originalFetch;
     process.env.INCIDENT_EXTRACTION_PROVIDER = "heuristic";
     delete process.env.OLLAMA_API_URL;
+    delete process.env.OLLAMA_API_KEY;
     resetEnvCache();
   }
 });

@@ -13,9 +13,10 @@ export default async function HomePage() {
       acc.total += 1;
       if (incident.layer === "police") acc.police += 1;
       if (incident.severity >= 4) acc.urgent += 1;
+      if (incident.geocoding?.resolved === false) acc.unresolved += 1;
       return acc;
     },
-    { total: 0, police: 0, urgent: 0 },
+    { total: 0, police: 0, urgent: 0, unresolved: 0 },
   );
 
   return (
@@ -46,6 +47,10 @@ export default async function HomePage() {
           <label>High / Critical</label>
           <strong>{counts.urgent}</strong>
         </article>
+        <article className="stat">
+          <label>Needs Geocode Review</label>
+          <strong>{counts.unresolved}</strong>
+        </article>
       </section>
 
       <section className="grid">
@@ -63,13 +68,13 @@ export default async function HomePage() {
             {incidents.map((incident) => (
               <span
                 key={incident.id}
-                className="marker"
+                className={`marker${incident.geocoding?.resolved === false ? " marker-unresolved" : ""}`}
                 data-severity={incident.severityLabel}
                 style={{
                   left: `${44 + (incident.point.lng + 83.1) * 60}%`,
                   top: `${56 - (incident.point.lat - 39.9) * 90}%`,
                 }}
-                title={`${incident.category} at ${incident.address}`}
+                title={`${incident.category} at ${incident.address}${incident.geocoding?.resolved === false ? " (approximate location)" : ""}`}
               />
             ))}
           </div>
@@ -93,6 +98,11 @@ export default async function HomePage() {
                 <h3>{incident.category}</h3>
                 <p>{incident.address}</p>
                 <p>{incident.description}</p>
+                {incident.geocoding?.resolved === false ? (
+                  <p className="incident-warning">
+                    Approximate map placement. Reason: {incident.geocoding.reason ?? "unresolved geocode"}.
+                  </p>
+                ) : null}
               </article>
             ))}
           </div>

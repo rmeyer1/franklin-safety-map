@@ -72,7 +72,7 @@ a {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-top: 24px;
 }
@@ -169,6 +169,14 @@ a {
   background: var(--safe);
 }
 
+.marker-unresolved {
+  background: transparent !important;
+  border: 3px solid var(--text);
+  box-shadow:
+    0 0 0 6px rgba(255, 255, 255, 0.4),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
 .incident-list {
   display: grid;
   gap: 12px;
@@ -215,6 +223,12 @@ a {
   line-height: 1.55;
 }
 
+.incident-warning {
+  margin-top: 10px !important;
+  color: var(--danger) !important;
+  font-size: 0.92rem;
+}
+
 @media (max-width: 960px) {
   .shell {
     padding: 18px;
@@ -226,7 +240,7 @@ a {
   }
 
   .stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .map-placeholder {
@@ -234,3 +248,8 @@ a {
   }
 }
 
+@media (max-width: 640px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}

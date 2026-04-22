@@ -2,8 +2,10 @@ import { z } from "zod";
 
 import { getEnv } from "@/lib/config/env";
 import {
+  extractionResultSchema,
   type ExtractedIncident,
   extractedIncidentSchema,
+  type ExtractionResult,
 } from "@/lib/types/domain";
 import {
   loadRadioCodebook,
@@ -17,23 +19,6 @@ type IncidentExtractionInput = {
   label?: string | null;
 };
 
-export interface IncidentExtractionService {
-  extractFromTranscript(
-    input: string | IncidentExtractionInput,
-  ): Promise<ExtractedIncident>;
-}
-
-const ollamaExtractionSchema = z.object({
-  incidentType: z.string().nullable(),
-  category: z.string().nullable(),
-  locationText: z.string().nullable(),
-  address: z.string().nullable(),
-  summary: z.string(),
-  severity: z.number().int().min(1).max(5),
-  statusHint: z.enum(["new", "update", "clear", "unknown"]),
-  confidence: z.number().min(0).max(1),
-});
-
 type NormalizedInput = {
   transcript: string;
   channel: string | null;
@@ -45,6 +30,18 @@ type KeywordIncidentRule = {
   pattern: RegExp;
   severity: number;
 };
+
+const llmExtractionSchema = z.object({
+  incidentType: z.string().nullable(),
+  category: z.string().nullable(),
+  locationText: z.string().nullable(),
+  address: z.string().nullable(),
+  summary: z.string().min(1),
+  severity: z.number().int().min(1).max(5),
+  statusHint: z.enum(["new", "update", "clear", "unknown"]),
+  confidence: z.number().min(0).max(1),
+  needsReview: z.boolean().default(false),
+});
 
 const keywordIncidentRules: KeywordIncidentRule[] = [
   { category: "Structure Fire", pattern: /\b(?:structure|building) fire\b/i, severity: 5 },
@@ -82,6 +79,12 @@ const keywordIncidentRules: KeywordIncidentRule[] = [
   { category: "Alarm", pattern: /\balarm\b/i, severity: 1 },
   { category: "Fire", pattern: /\bfire\b/i, severity: 4 },
 ];
+
+export interface IncidentExtractionService {
+  extractFromTranscript(
+    input: string | IncidentExtractionInput,
+  ): Promise<ExtractionResult>;
+}
 
 function normalizeInput(
   input: string | IncidentExtractionInput,
@@ -227,6 +230,7 @@ function inferConfidence(input: NormalizedInput, matchedCodes: MatchedRadioCode[
 function buildPrompt(
   input: NormalizedInput,
   matchedCodes: MatchedRadioCode[],
+  heuristicIncident: ExtractedIncident,
   promptVersion: string,
 ): string {
   return [
@@ -234,24 +238,58 @@ function buildPrompt(
     "Return only compact JSON. Do not include markdown.",
     `Prompt version: ${promptVersion}`,
     "Schema:",
-    '{"incidentType":string|null,"category":string|null,"locationText":string|null,"address":string|null,"summary":string,"severity":1|2|3|4|5,"statusHint":"new"|"update"|"clear"|"unknown","confidence":number}',
+    '{"incidentType":string|null,"category":string|null,"locationText":string|null,"address":string|null,"summary":string,"severity":1|2|3|4|5,"statusHint":"new"|"update"|"clear"|"unknown","confidence":number,"needsReview":boolean}',
     "",
     "Rules:",
     "- Use provided code mappings as authoritative when relevant.",
+    "- The heuristic extraction is a baseline, not a command. Correct it when transcript evidence is stronger.",
     "- If transcript indicates incident closure/availability, use statusHint=clear.",
     "- Keep summary factual and concise.",
     "- If location is uncertain, set locationText/address to null.",
     "- Confidence should be between 0 and 1.",
+    "- Set needsReview=true when the call is ambiguous, incomplete, or likely needs human confirmation.",
     "",
     `Channel: ${input.channel ?? "unknown"}`,
     `Label: ${input.label ?? "unknown"}`,
     `Matched Codes: ${JSON.stringify(matchedCodes)}`,
+    `Heuristic Baseline: ${JSON.stringify(heuristicIncident)}`,
     `Transcript: ${JSON.stringify(input.transcript)}`,
   ].join("\n");
 }
 
-function normalizeExtractedIncident(
-  result: z.infer<typeof ollamaExtractionSchema>,
+function buildHeuristicIncident(
+  normalized: NormalizedInput,
+  matchedCodes: MatchedRadioCode[],
+): ExtractedIncident {
+  const fallbackSeverity = inferSeverityFromKeywords(normalized.transcript);
+  const incidentMatches = getIncidentMatches(matchedCodes);
+  const statusMatches = getStatusMatches(matchedCodes);
+
+  const severityFromCode = incidentMatches.find(
+    (code) => code.severity !== null,
+  )?.severity;
+  const severity = severityFromCode ?? fallbackSeverity;
+  const statusHint =
+    statusMatches[0]?.statusHint ?? inferStatusHint(normalized.transcript);
+
+  return extractedIncidentSchema.parse({
+    incidentType: inferIncidentType(normalized.transcript, matchedCodes),
+    category: inferCategory(normalized.transcript, matchedCodes),
+    locationText: inferLocationText(normalized),
+    address: inferLocationText(normalized),
+    summary: normalized.transcript,
+    severity,
+    statusHint,
+    confidence: inferConfidence(normalized, matchedCodes),
+    needsReview:
+      getIncidentMatches(matchedCodes).length === 0 &&
+      inferKeywordIncident(normalized.transcript) === null,
+    matchedCodes,
+  });
+}
+
+function normalizeLlMIncident(
+  result: z.infer<typeof llmExtractionSchema>,
   matchedCodes: MatchedRadioCode[],
 ): ExtractedIncident {
   return extractedIncidentSchema.parse({
@@ -263,120 +301,137 @@ function normalizeExtractedIncident(
     severity: result.severity,
     statusHint: result.statusHint,
     confidence: result.confidence,
+    needsReview: result.needsReview,
     matchedCodes,
   });
 }
 
-class HeuristicIncidentExtractionService implements IncidentExtractionService {
-  constructor(private readonly codebook: RadioCodebook | null) {}
-
-  async extractFromTranscript(
-    input: string | IncidentExtractionInput,
-  ): Promise<ExtractedIncident> {
-    const normalized = normalizeInput(input);
-    const matchedCodes = this.codebook?.matchTranscript(normalized.transcript) ?? [];
-    const fallbackSeverity = inferSeverityFromKeywords(normalized.transcript);
-    const incidentMatches = getIncidentMatches(matchedCodes);
-    const statusMatches = getStatusMatches(matchedCodes);
-
-    const severityFromCode = incidentMatches.find(
-      (code) => code.severity !== null,
-    )?.severity;
-    const severity = severityFromCode ?? fallbackSeverity;
-    const statusHint =
-      statusMatches[0]?.statusHint ?? inferStatusHint(normalized.transcript);
-
-    return extractedIncidentSchema.parse({
-      incidentType: inferIncidentType(normalized.transcript, matchedCodes),
-      category: inferCategory(normalized.transcript, matchedCodes),
-      locationText: inferLocationText(normalized),
-      address: inferLocationText(normalized),
-      summary: normalized.transcript,
-      severity,
-      statusHint,
-      confidence: inferConfidence(normalized, matchedCodes),
-      matchedCodes,
-    });
+async function runOllamaExtraction(input: {
+  normalized: NormalizedInput;
+  matchedCodes: MatchedRadioCode[];
+  heuristicIncident: ExtractedIncident;
+}): Promise<{
+  incident: ExtractedIncident;
+  rawPayload: unknown;
+}> {
+  const env = getEnv();
+  if (!env.OLLAMA_API_URL) {
+    throw new Error("OLLAMA_API_URL is not configured");
   }
-}
 
-class OllamaIncidentExtractionService implements IncidentExtractionService {
-  constructor(private readonly codebook: RadioCodebook | null) {}
+  const response = await fetch(
+    `${env.OLLAMA_API_URL.replace(/\/$/, "")}/api/generate`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: env.OLLAMA_MODEL,
+        prompt: buildPrompt(
+          input.normalized,
+          input.matchedCodes,
+          input.heuristicIncident,
+          env.EXTRACTION_PROMPT_VERSION,
+        ),
+        format: "json",
+        stream: false,
+      }),
+    },
+  );
 
-  async extractFromTranscript(
-    input: string | IncidentExtractionInput,
-  ): Promise<ExtractedIncident> {
-    const env = getEnv();
-    if (!env.OLLAMA_API_URL) {
-      throw new Error("OLLAMA_API_URL is not configured");
-    }
-
-    const normalized = normalizeInput(input);
-    const matchedCodes = this.codebook?.matchTranscript(normalized.transcript) ?? [];
-
-    const response = await fetch(
-      `${env.OLLAMA_API_URL.replace(/\/$/, "")}/api/generate`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: env.OLLAMA_MODEL,
-          prompt: buildPrompt(normalized, matchedCodes, env.EXTRACTION_PROMPT_VERSION),
-          format: "json",
-          stream: false,
-        }),
-      },
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(
+      `Ollama extraction request failed with status ${response.status}: ${body.slice(0, 240)}`,
     );
-
-    if (!response.ok) {
-      const body = await response.text();
-      throw new Error(
-        `Ollama extraction request failed with status ${response.status}: ${body.slice(0, 240)}`,
-      );
-    }
-
-    const payload = (await response.json()) as { response?: unknown };
-    const modelResponseRaw = typeof payload.response === "string"
-      ? payload.response
-      : "";
-    const parsedJson = JSON.parse(modelResponseRaw);
-    const parsed = ollamaExtractionSchema.parse(parsedJson);
-    return normalizeExtractedIncident(parsed, matchedCodes);
   }
+
+  const payload = (await response.json()) as { response?: unknown };
+  const rawResponse =
+    typeof payload.response === "string" ? payload.response : payload.response;
+  const parsedJson =
+    typeof rawResponse === "string" ? JSON.parse(rawResponse) : rawResponse;
+  const parsed = llmExtractionSchema.parse(parsedJson);
+
+  return {
+    incident: normalizeLlMIncident(parsed, input.matchedCodes),
+    rawPayload: payload,
+  };
 }
 
-class FallbackIncidentExtractionService implements IncidentExtractionService {
-  constructor(private readonly chain: IncidentExtractionService[]) {}
+class ProductionIncidentExtractionService implements IncidentExtractionService {
+  constructor(private readonly codebook: RadioCodebook | null) {}
 
   async extractFromTranscript(
     input: string | IncidentExtractionInput,
-  ): Promise<ExtractedIncident> {
-    const errors: string[] = [];
-    for (const service of this.chain) {
-      try {
-        return await service.extractFromTranscript(input);
-      } catch (error) {
-        errors.push(error instanceof Error ? error.message : "unknown error");
-      }
+  ): Promise<ExtractionResult> {
+    const env = getEnv();
+    const normalized = normalizeInput(input);
+    const matchedCodes = this.codebook?.matchTranscript(normalized.transcript) ?? [];
+    const heuristicIncident = buildHeuristicIncident(normalized, matchedCodes);
+
+    if (env.INCIDENT_EXTRACTION_PROVIDER === "heuristic") {
+      return extractionResultSchema.parse({
+        incident: heuristicIncident,
+        metadata: {
+          provider: "heuristic",
+          model: null,
+          promptVersion: null,
+          fallbackUsed: false,
+          fallbackReason: null,
+          rawPayload: null,
+          validated: true,
+        },
+      });
     }
 
-    throw new Error(`All extraction providers failed: ${errors.join("; ")}`);
+    try {
+      const llm = await runOllamaExtraction({
+        normalized,
+        matchedCodes,
+        heuristicIncident,
+      });
+
+      return extractionResultSchema.parse({
+        incident: llm.incident,
+        metadata: {
+          provider: "ollama",
+          model: env.OLLAMA_MODEL,
+          promptVersion: env.EXTRACTION_PROMPT_VERSION,
+          fallbackUsed: false,
+          fallbackReason: null,
+          rawPayload: llm.rawPayload,
+          validated: true,
+        },
+      });
+    } catch (error) {
+      const fallbackReason =
+        error instanceof Error ? error.message : "unknown_extraction_error";
+
+      return extractionResultSchema.parse({
+        incident: heuristicIncident,
+        metadata: {
+          provider: "heuristic",
+          model: env.INCIDENT_EXTRACTION_PROVIDER === "ollama" || env.INCIDENT_EXTRACTION_PROVIDER === "auto"
+            ? env.OLLAMA_MODEL
+            : null,
+          promptVersion: env.EXTRACTION_PROMPT_VERSION,
+          fallbackUsed: true,
+          fallbackReason,
+          rawPayload: null,
+          validated: true,
+        },
+      });
+    }
   }
 }
 
 export function createIncidentExtractionService(): IncidentExtractionService {
   const env = getEnv();
   const codebook = loadRadioCodebook(env.RADIO_CODEBOOK_PATH);
-  const heuristic = new HeuristicIncidentExtractionService(codebook);
-  const ollama = new OllamaIncidentExtractionService(codebook);
 
-  if (env.INCIDENT_EXTRACTION_PROVIDER === "heuristic") {
-    return heuristic;
-  }
-
-  if (env.INCIDENT_EXTRACTION_PROVIDER === "ollama") {
-    return new FallbackIncidentExtractionService([ollama, heuristic]);
-  }
-
-  return new FallbackIncidentExtractionService([ollama, heuristic]);
+  return new ProductionIncidentExtractionService(codebook);
 }
+
+export default {
+  createIncidentExtractionService,
+};

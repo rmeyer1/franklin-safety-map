@@ -144,7 +144,7 @@ export const enrichmentRunSchema = z.object({
   enrichmentJobId: z.string().uuid().nullable(),
   transcriptText: z.string().nullable(),
   transcriptionProvider: z.string().nullable(),
-  extraction: z.record(z.string(), z.unknown()).default({}),
+  extraction: z.lazy(() => enrichmentRunExtractionSchema),
   geocoding: geocodingResultSchema,
   outcome: enrichmentRunOutcomeSchema,
   createdAt: z.string(),
@@ -169,6 +169,7 @@ export const extractedIncidentSchema = z.object({
   severity: z.number().int().min(1).max(5),
   statusHint: z.enum(["new", "update", "clear", "unknown"]),
   confidence: z.number().min(0).max(1),
+  needsReview: z.boolean().default(false),
   matchedCodes: z.array(
     z.object({
       code: z.string(),
@@ -184,6 +185,45 @@ export const extractedIncidentSchema = z.object({
 });
 
 export type ExtractedIncident = z.infer<typeof extractedIncidentSchema>;
+
+export const extractionProviderSchema = z.enum(["heuristic", "ollama"]);
+export type ExtractionProvider = z.infer<typeof extractionProviderSchema>;
+
+export const extractionMetadataSchema = z.object({
+  provider: extractionProviderSchema,
+  model: z.string().nullable(),
+  promptVersion: z.string().nullable(),
+  fallbackUsed: z.boolean(),
+  fallbackReason: z.string().nullable(),
+  rawPayload: z.unknown().nullable(),
+  validated: z.boolean(),
+});
+
+export type ExtractionMetadata = z.infer<typeof extractionMetadataSchema>;
+
+export const extractionResultSchema = z.object({
+  incident: extractedIncidentSchema,
+  metadata: extractionMetadataSchema,
+});
+
+export type ExtractionResult = z.infer<typeof extractionResultSchema>;
+
+export const enrichmentRunExtractionSchema = z.object({
+  incidentType: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  locationText: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  summary: z.string().optional(),
+  severity: z.number().int().min(1).max(5).optional(),
+  statusHint: z.enum(["new", "update", "clear", "unknown"]).optional(),
+  confidence: z.number().min(0).max(1).optional(),
+  needsReview: z.boolean().optional(),
+  matchedCodes: extractedIncidentSchema.shape.matchedCodes.optional(),
+  metadata: extractionMetadataSchema.optional(),
+  skippedReason: z.string().optional(),
+});
+
+export type EnrichmentRunExtraction = z.infer<typeof enrichmentRunExtractionSchema>;
 
 export const incidentUpsertSchema = z.object({
   source: z.string(),

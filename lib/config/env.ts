@@ -69,3 +69,7 @@ export function getEnv(): AppEnv {
   cachedEnv = envSchema.parse(process.env);
   return cachedEnv;
 }
+
+export function resetEnvCache(): void {
+  cachedEnv = undefined;
+}

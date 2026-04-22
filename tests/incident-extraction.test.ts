@@ -194,3 +194,40 @@ test("falls back to heuristic extraction when ollama returns invalid JSON", asyn
     resetEnvCache();
   }
 });
+
+test("falls back to heuristic and marks needsReview when ollama times out", async () => {
+  process.env.INCIDENT_EXTRACTION_PROVIDER = "ollama";
+  process.env.OLLAMA_API_URL = "https://example.test";
+  process.env.EXTRACTION_TIMEOUT_MS = "10";
+  resetEnvCache();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_input, init) =>
+    await new Promise<Response>((_resolve, reject) => {
+      const signal = init?.signal;
+      if (signal) {
+        signal.addEventListener("abort", () => {
+          reject(new DOMException("Aborted", "AbortError"));
+        });
+      }
+    });
+
+  try {
+    const service = createIncidentExtractionService();
+    const result = await service.extractFromTranscript(
+      "8101 Waynesboro needs to file a report reference bank theft.",
+    );
+
+    assert.equal(result.incident.category, "Theft");
+    assert.equal(result.incident.needsReview, true);
+    assert.equal(result.metadata.provider, "heuristic");
+    assert.equal(result.metadata.fallbackUsed, true);
+    assert.match(result.metadata.fallbackReason ?? "", /timed out after 10ms/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.INCIDENT_EXTRACTION_PROVIDER = "heuristic";
+    delete process.env.OLLAMA_API_URL;
+    delete process.env.EXTRACTION_TIMEOUT_MS;
+    resetEnvCache();
+  }
+});

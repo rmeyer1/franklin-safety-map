@@ -41,6 +41,7 @@ const envSchema = z.object({
     .default("auto"),
   RADIO_CODEBOOK_PATH: z.string().default("data/radio-codes/frkoh.json"),
   EXTRACTION_PROMPT_VERSION: z.string().default("v1"),
+  EXTRACTION_TIMEOUT_MS: z.coerce.number().int().positive().default(75000),
   XAI_API_KEY: z.string().optional(),
   XAI_STT_MODEL: z.string().default("grok-2-stt"),
   OPENAI_API_KEY: z.string().optional(),

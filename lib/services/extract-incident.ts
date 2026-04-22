@@ -319,48 +319,73 @@ async function runOllamaExtraction(input: {
     throw new Error("OLLAMA_API_URL is not configured");
   }
 
-  const response = await fetch(
-    `${env.OLLAMA_API_URL.replace(/\/$/, "")}/api/generate`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(env.OLLAMA_API_KEY
-          ? { Authorization: `Bearer ${env.OLLAMA_API_KEY}` }
-          : {}),
+  const baseUrl = env.OLLAMA_API_URL.replace(/\/$/, "");
+  const generateUrl = baseUrl.endsWith("/api")
+    ? `${baseUrl}/generate`
+    : `${baseUrl}/api/generate`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, env.EXTRACTION_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(
+      generateUrl,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(env.OLLAMA_API_KEY
+            ? { Authorization: `Bearer ${env.OLLAMA_API_KEY}` }
+            : {}),
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: env.OLLAMA_MODEL,
+          prompt: buildPrompt(
+            input.normalized,
+            input.matchedCodes,
+            input.heuristicIncident,
+            env.EXTRACTION_PROMPT_VERSION,
+          ),
+          format: "json",
+          stream: false,
+        }),
       },
-      body: JSON.stringify({
-        model: env.OLLAMA_MODEL,
-        prompt: buildPrompt(
-          input.normalized,
-          input.matchedCodes,
-          input.heuristicIncident,
-          env.EXTRACTION_PROMPT_VERSION,
-        ),
-        format: "json",
-        stream: false,
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `Ollama extraction request failed with status ${response.status}: ${body.slice(0, 240)}`,
     );
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `Ollama extraction request failed with status ${response.status}: ${body.slice(0, 240)}`,
+      );
+    }
+
+    const payload = (await response.json()) as { response?: unknown };
+    const rawResponse =
+      typeof payload.response === "string" ? payload.response : payload.response;
+    const parsedJson =
+      typeof rawResponse === "string" ? JSON.parse(rawResponse) : rawResponse;
+    const parsed = llmExtractionSchema.parse(parsedJson);
+
+    return {
+      incident: normalizeLlMIncident(parsed, input.matchedCodes),
+      rawPayload: payload,
+    };
+  } catch (error) {
+    if (
+      error instanceof DOMException &&
+      error.name === "AbortError"
+    ) {
+      throw new Error(
+        `Ollama extraction timed out after ${env.EXTRACTION_TIMEOUT_MS}ms`,
+      );
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const payload = (await response.json()) as { response?: unknown };
-  const rawResponse =
-    typeof payload.response === "string" ? payload.response : payload.response;
-  const parsedJson =
-    typeof rawResponse === "string" ? JSON.parse(rawResponse) : rawResponse;
-  const parsed = llmExtractionSchema.parse(parsedJson);
-
-  return {
-    incident: normalizeLlMIncident(parsed, input.matchedCodes),
-    rawPayload: payload,
-  };
 }
 
 class ProductionIncidentExtractionService implements IncidentExtractionService {
@@ -411,9 +436,13 @@ class ProductionIncidentExtractionService implements IncidentExtractionService {
     } catch (error) {
       const fallbackReason =
         error instanceof Error ? error.message : "unknown_extraction_error";
+      const fallbackIncident = extractedIncidentSchema.parse({
+        ...heuristicIncident,
+        needsReview: true,
+      });
 
       return extractionResultSchema.parse({
-        incident: heuristicIncident,
+        incident: fallbackIncident,
         metadata: {
           provider: "heuristic",
           model: env.INCIDENT_EXTRACTION_PROVIDER === "ollama" || env.INCIDENT_EXTRACTION_PROVIDER === "auto"

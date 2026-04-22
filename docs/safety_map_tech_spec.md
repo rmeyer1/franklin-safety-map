@@ -8,14 +8,14 @@ The platform is a **Hybrid Geospatial Aggregator**. It uses a TypeScript backend
 ### 2.1 The Stack
 *   **Frontend:** Next.js + Tailwind CSS + **Mapbox GL JS** $\rightarrow$ Hosted on **Vercel**.
 *   **The API Layer:** Node.js + TypeScript (Next.js Route Handlers / server APIs) $\rightarrow$ Hosted on **Vercel**.
-*   **The Engine (The Brain):** Node.js + TypeScript background workers $\rightarrow$ Hosted on **Railway.app**.
+*   **The Engine (The Brain):** Node.js + TypeScript background workers $\rightarrow$ Hosted on **Render**.
 *   **Speech-to-Text:** **xAI Speech-to-Text** as primary transcription provider, with **OpenAI STT** as fallback.
 *   **LLM Intelligence:** Accessed via hosted LLM APIs for extraction. The initial extraction path uses **Ollama Cloud API**.
 *   **Data Core:** **Supabase (PostgreSQL + PostGIS)**. PostGIS is mandatory for spatial queries.
 
 ### 2.2 Hosting Blueprint
 1.  **Vercel:** Serves the UI and lightweight API requests.
-2.  **Railway:** Runs a persistent Node.js/TypeScript worker process that never sleeps. This worker handles the "Listen, Parse, and Store" loop.
+2.  **Render:** Runs a persistent Node.js/TypeScript worker process that never sleeps. This worker handles the "Listen, Parse, and Store" loop.
 3.  **Supabase:** The central state. All workers write here; the UI reads from here.
 
 ---
@@ -30,8 +30,9 @@ This pipeline transforms hosted scanner audio into structured map markers using 
 **The Software Stack:**
 `OpenMHz (frkoh)` $\rightarrow$ `TypeScript Polling/Fetch Worker` $\rightarrow$ `xAI STT (primary)` / `OpenAI STT (fallback)` $\rightarrow$ `Ollama Cloud Extraction` $\rightarrow$ `Supabase` $\rightarrow$ `Vercel UI`
 
+<<<<<<< HEAD
 *   **Upstream Source:** The worker ingests police dispatch audio from the **OpenMHz** `frkoh` system, which is currently treated as the Warren County pilot source.
-*   **Polling Worker:** The Railway TypeScript worker polls for newly published calls, stores a cursor (`time` + call ID), and deduplicates calls before processing.
+*   **Polling Worker:** The Render TypeScript worker polls for newly published calls, stores a cursor (`time` + call ID), and deduplicates calls before processing.
 *   **Audio Retrieval:** The worker downloads the audio for each new call. The pipeline must not assume a fixed extension such as `.wav` or `.mp3`; the upstream source may publish different audio formats.
 *   **Transcription:** Audio chunks are sent first to **xAI Speech-to-Text** for transcription. If xAI is unavailable, rate-limited, or returns low-confidence / unusable output, the worker retries with **OpenAI STT** as the fallback provider.
 *   **Entity Extraction:** The transcription is sent to **Ollama Cloud (Llama 3.1 8B)** to extract `Incident Type`, `Location`, and `Priority` in JSON format.

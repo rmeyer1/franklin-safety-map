@@ -41,11 +41,13 @@ const envSchema = z.object({
     .default("auto"),
   RADIO_CODEBOOK_PATH: z.string().default("data/radio-codes/frkoh.json"),
   EXTRACTION_PROMPT_VERSION: z.string().default("v1"),
+  EXTRACTION_TIMEOUT_MS: z.coerce.number().int().positive().default(75000),
   XAI_API_KEY: z.string().optional(),
   XAI_STT_MODEL: z.string().default("grok-2-stt"),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_STT_MODEL: z.string().default("gpt-4o-mini-transcribe"),
   OLLAMA_API_URL: z.string().optional(),
+  OLLAMA_API_KEY: z.string().optional(),
   OLLAMA_MODEL: z.string().default("llama3.1:8b"),
   SUPABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
@@ -68,4 +70,8 @@ export function getEnv(): AppEnv {
 
   cachedEnv = envSchema.parse(process.env);
   return cachedEnv;
+}
+
+export function resetEnvCache(): void {
+  cachedEnv = undefined;
 }

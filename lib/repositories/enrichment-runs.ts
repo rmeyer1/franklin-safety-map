@@ -1,8 +1,10 @@
 import { getDbPool } from "@/lib/server/db";
 import {
   enrichmentRunSchema,
+  enrichmentRunExtractionSchema,
   geocodingResultSchema,
   type EnrichmentRun,
+  type EnrichmentRunExtraction,
   type GeocodingResult,
 } from "@/lib/types/domain";
 
@@ -35,7 +37,7 @@ function mapRow(row: EnrichmentRunRow): EnrichmentRun {
     enrichmentJobId: row.enrichment_job_id,
     transcriptText: row.transcript_text,
     transcriptionProvider: row.transcription_provider,
-    extraction: coerceRecord(row.extraction),
+    extraction: enrichmentRunExtractionSchema.parse(coerceRecord(row.extraction)),
     geocoding: geocodingResultSchema.parse(row.geocoding),
     outcome: row.outcome,
     createdAt: toIsoString(row.created_at),
@@ -48,7 +50,7 @@ export interface EnrichmentRunRepository {
     enrichmentJobId?: string | null;
     transcriptText?: string | null;
     transcriptionProvider?: string | null;
-    extraction?: Record<string, unknown>;
+    extraction?: EnrichmentRunExtraction;
     geocoding: GeocodingResult;
     outcome: "published" | "skipped" | "failed";
   }): Promise<EnrichmentRun>;
@@ -60,7 +62,7 @@ export class PostgresEnrichmentRunRepository implements EnrichmentRunRepository 
     enrichmentJobId?: string | null;
     transcriptText?: string | null;
     transcriptionProvider?: string | null;
-    extraction?: Record<string, unknown>;
+    extraction?: EnrichmentRunExtraction;
     geocoding: GeocodingResult;
     outcome: "published" | "skipped" | "failed";
   }): Promise<EnrichmentRun> {
@@ -101,7 +103,7 @@ export class PostgresEnrichmentRunRepository implements EnrichmentRunRepository 
         input.enrichmentJobId ?? null,
         input.transcriptText ?? null,
         input.transcriptionProvider ?? null,
-        JSON.stringify(input.extraction ?? {}),
+        JSON.stringify(enrichmentRunExtractionSchema.parse(input.extraction ?? {})),
         JSON.stringify(input.geocoding),
         input.outcome,
       ],

@@ -166,11 +166,13 @@ export class SourceCallEnrichmentService {
       });
     }
 
-    const incident = await extractionService.extractFromTranscript({
+    const extraction = await extractionService.extractFromTranscript({
       transcript: transcriptText,
       channel: sourceCall.channel,
       label: sourceCall.label,
     });
+
+    const incident = extraction.incident;
 
     const hasIncidentSignal = shouldPublishIncident({
       incidentType: incident.incidentType,
@@ -204,7 +206,9 @@ export class SourceCallEnrichmentService {
         severity: incident.severity,
         statusHint: incident.statusHint,
         confidence: incident.confidence,
+        needsReview: incident.needsReview,
         matchedCodes: incident.matchedCodes,
+        metadata: extraction.metadata,
       },
       geocoding,
       outcome: "published",
@@ -239,7 +243,9 @@ export class SourceCallEnrichmentService {
           incidentType: incident.incidentType,
           statusHint: incident.statusHint,
           confidence: incident.confidence,
+          needsReview: incident.needsReview,
           matchedCodes: incident.matchedCodes,
+          metadata: extraction.metadata,
         },
         geocoding,
         sourceMetadata: sourceCall.metadata,

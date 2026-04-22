@@ -62,10 +62,15 @@ export interface SourceCallRepository {
     call: SourceCall;
     rawPayload?: unknown;
   }): Promise<StoredSourceCall>;
+  getById(id: string): Promise<StoredSourceCall | null>;
   getBySourceEvent(
     source: string,
     sourceEventId: string,
   ): Promise<StoredSourceCall | null>;
+  setTranscript(input: {
+    id: string;
+    transcriptText: string;
+  }): Promise<StoredSourceCall>;
 }
 
 export class PostgresSourceCallRepository implements SourceCallRepository {
@@ -201,6 +206,76 @@ export class PostgresSourceCallRepository implements SourceCallRepository {
 
     if (result.rowCount === 0) {
       return null;
+    }
+
+    return mapRow(result.rows[0]);
+  }
+
+  async getById(id: string): Promise<StoredSourceCall | null> {
+    const pool = getDbPool();
+    const result = await pool.query<SourceCallRow>(
+      `
+        select
+          id,
+          source,
+          cursor_key,
+          source_event_id,
+          occurred_at,
+          occurred_at_ms,
+          audio_url,
+          file_name,
+          transcript_text,
+          channel,
+          label,
+          duration_seconds,
+          metadata,
+          raw_payload,
+          created_at
+        from source_calls
+        where id = $1::uuid
+      `,
+      [id],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    return mapRow(result.rows[0]);
+  }
+
+  async setTranscript(input: {
+    id: string;
+    transcriptText: string;
+  }): Promise<StoredSourceCall> {
+    const pool = getDbPool();
+    const result = await pool.query<SourceCallRow>(
+      `
+        update source_calls
+        set transcript_text = $2
+        where id = $1::uuid
+        returning
+          id,
+          source,
+          cursor_key,
+          source_event_id,
+          occurred_at,
+          occurred_at_ms,
+          audio_url,
+          file_name,
+          transcript_text,
+          channel,
+          label,
+          duration_seconds,
+          metadata,
+          raw_payload,
+          created_at
+      `,
+      [input.id, input.transcriptText],
+    );
+
+    if (result.rowCount === 0) {
+      throw new Error(`Source call ${input.id} was not found while updating transcript`);
     }
 
     return mapRow(result.rows[0]);

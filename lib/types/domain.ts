@@ -23,6 +23,7 @@ export const incidentSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   point: pointSchema,
+  geocoding: z.lazy(() => geocodingResultSchema).optional(),
 });
 
 export type Incident = z.infer<typeof incidentSchema>;
@@ -118,6 +119,39 @@ export const enrichmentJobSchema = z.object({
 
 export type EnrichmentJob = z.infer<typeof enrichmentJobSchema>;
 
+export const enrichmentRunOutcomeSchema = z.enum([
+  "published",
+  "skipped",
+  "failed",
+]);
+
+export type EnrichmentRunOutcome = z.infer<typeof enrichmentRunOutcomeSchema>;
+
+export const geocodingResultSchema = z.object({
+  provider: z.string(),
+  resolved: z.boolean(),
+  confidence: z.number().min(0).max(1),
+  query: z.string().nullable(),
+  reason: z.string().nullable(),
+  point: pointSchema.nullable(),
+});
+
+export type GeocodingResult = z.infer<typeof geocodingResultSchema>;
+
+export const enrichmentRunSchema = z.object({
+  id: z.string().uuid(),
+  sourceCallId: z.string().uuid(),
+  enrichmentJobId: z.string().uuid().nullable(),
+  transcriptText: z.string().nullable(),
+  transcriptionProvider: z.string().nullable(),
+  extraction: z.record(z.string(), z.unknown()).default({}),
+  geocoding: geocodingResultSchema,
+  outcome: enrichmentRunOutcomeSchema,
+  createdAt: z.string(),
+});
+
+export type EnrichmentRun = z.infer<typeof enrichmentRunSchema>;
+
 export const transcriptionSchema = z.object({
   provider: z.enum(["whisper_local", "xai", "openai"]),
   text: z.string(),
@@ -154,6 +188,8 @@ export type ExtractedIncident = z.infer<typeof extractedIncidentSchema>;
 export const incidentUpsertSchema = z.object({
   source: z.string(),
   sourceEventId: z.string().nullable().optional(),
+  sourceCallId: z.string().uuid().nullable().optional(),
+  enrichmentRunId: z.string().uuid().nullable().optional(),
   layer: layerSchema,
   category: z.string(),
   address: z.string(),

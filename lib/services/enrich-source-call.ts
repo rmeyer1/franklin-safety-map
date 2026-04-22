@@ -1,6 +1,8 @@
+import { createEnrichmentRunRepository } from "@/lib/repositories/enrichment-runs";
 import { createIncidentRepository } from "@/lib/repositories/incidents";
 import { createSourceCallRepository } from "@/lib/repositories/source-calls";
 import { createIncidentExtractionService } from "@/lib/services/extract-incident";
+import { createGeocodingService } from "@/lib/services/geocode";
 import {
   createTranscriptionService,
   TranscriptionFailedError,
@@ -70,7 +72,9 @@ export class SkippableEnrichmentError extends Error {
 
 type EnrichSourceCallDeps = {
   sourceCallRepository: ReturnType<typeof createSourceCallRepository>;
+  enrichmentRunRepository: ReturnType<typeof createEnrichmentRunRepository>;
   incidentRepository: ReturnType<typeof createIncidentRepository>;
+  geocodingService: ReturnType<typeof createGeocodingService>;
   transcriptionService: ReturnType<typeof createTranscriptionService>;
   extractionService: ReturnType<typeof createIncidentExtractionService>;
 };
@@ -101,17 +105,22 @@ export function shouldPublishIncident(input: {
 export class SourceCallEnrichmentService {
   constructor(private readonly deps: EnrichSourceCallDeps) {}
 
-  async enrich(sourceCallId: string): Promise<EnrichSourceCallResult> {
+  async enrich(input: {
+    sourceCallId: string;
+    enrichmentJobId?: string | null;
+  }): Promise<EnrichSourceCallResult> {
     const {
       sourceCallRepository,
+      enrichmentRunRepository,
       incidentRepository,
+      geocodingService,
       transcriptionService,
       extractionService,
     } = this.deps;
 
-    let sourceCall = await sourceCallRepository.getById(sourceCallId);
+    let sourceCall = await sourceCallRepository.getById(input.sourceCallId);
     if (!sourceCall) {
-      throw new Error(`Source call ${sourceCallId} was not found`);
+      throw new Error(`Source call ${input.sourceCallId} was not found`);
     }
 
     let transcriptText = sourceCall.transcriptText;
@@ -121,7 +130,7 @@ export class SourceCallEnrichmentService {
       if (!sourceCall.audioUrl) {
         throw new SkippableEnrichmentError(
           "missing_audio_and_transcript",
-          `Source call ${sourceCallId} has neither transcript text nor audio URL`,
+          `Source call ${input.sourceCallId} has neither transcript text nor audio URL`,
         );
       }
 
@@ -171,13 +180,41 @@ export class SourceCallEnrichmentService {
     if (!hasIncidentSignal) {
       throw new SkippableEnrichmentError(
         "low_confidence_non_incident",
-        `Source call ${sourceCallId} did not contain a strong incident signal`,
+        `Source call ${input.sourceCallId} did not contain a strong incident signal`,
       );
     }
+
+    const geocoding = await geocodingService.geocode({
+      address: incident.address,
+      locationText: incident.locationText,
+      label: sourceCall.label,
+    });
+
+    const enrichmentRun = await enrichmentRunRepository.create({
+      sourceCallId: sourceCall.id,
+      enrichmentJobId: input.enrichmentJobId ?? null,
+      transcriptText,
+      transcriptionProvider,
+      extraction: {
+        incidentType: incident.incidentType,
+        category: incident.category,
+        locationText: incident.locationText,
+        address: incident.address,
+        summary: incident.summary,
+        severity: incident.severity,
+        statusHint: incident.statusHint,
+        confidence: incident.confidence,
+        matchedCodes: incident.matchedCodes,
+      },
+      geocoding,
+      outcome: "published",
+    });
 
     const savedIncident = await incidentRepository.upsert({
       source: sourceCall.source,
       sourceEventId: sourceCall.sourceEventId,
+      sourceCallId: sourceCall.id,
+      enrichmentRunId: enrichmentRun.id,
       layer: "police",
       category: incident.category ?? "Radio Dispatch",
       address: incident.address ?? sourceCall.label ?? "Unknown location",
@@ -185,9 +222,9 @@ export class SourceCallEnrichmentService {
       severity: incident.severity,
       status: "Active",
       occurredAt: sourceCall.occurredAt,
-      point: {
-        lat: 39.9612,
-        lng: -82.9988,
+      point: geocoding.point ?? {
+        lat: 39.43,
+        lng: -84.21,
       },
       metadata: {
         channel: sourceCall.channel,
@@ -202,7 +239,7 @@ export class SourceCallEnrichmentService {
           confidence: incident.confidence,
           matchedCodes: incident.matchedCodes,
         },
-        geocoded: false,
+        geocoding,
         sourceMetadata: sourceCall.metadata,
       },
     });
@@ -224,7 +261,9 @@ export class SourceCallEnrichmentService {
 export function createSourceCallEnrichmentService(): SourceCallEnrichmentService {
   return new SourceCallEnrichmentService({
     sourceCallRepository: createSourceCallRepository(),
+    enrichmentRunRepository: createEnrichmentRunRepository(),
     incidentRepository: createIncidentRepository(),
+    geocodingService: createGeocodingService(),
     transcriptionService: createTranscriptionService(),
     extractionService: createIncidentExtractionService(),
   });

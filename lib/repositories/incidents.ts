@@ -1,6 +1,7 @@
 import { getEnv } from "@/lib/config/env";
 import { mockIncidents } from "@/lib/repositories/mock-incidents";
 import {
+  geocodingResultSchema,
   incidentSchema,
   incidentUpsertSchema,
   mapFeedResponseSchema,
@@ -50,6 +51,7 @@ type IncidentRow = {
   updated_at: string | Date;
   lat: number;
   lng: number;
+  geocoding: unknown;
 };
 
 function severityToLabel(severity: number): Incident["severityLabel"] {
@@ -84,6 +86,10 @@ function mapRowToIncident(row: IncidentRow): Incident {
       lat: row.lat,
       lng: row.lng,
     },
+    geocoding:
+      row.geocoding && typeof row.geocoding === "object"
+        ? geocodingResultSchema.parse(row.geocoding)
+        : undefined,
   });
 }
 
@@ -101,6 +107,7 @@ export class PostgresIncidentRepository implements IncidentRepository {
         status,
         created_at,
         updated_at,
+        metadata->'geocoding' as geocoding,
         ST_Y(location::geometry) as lat,
         ST_X(location::geometry) as lng
       from incidents
@@ -120,6 +127,8 @@ export class PostgresIncidentRepository implements IncidentRepository {
         insert into incidents (
           source,
           source_event_id,
+          source_call_id,
+          enrichment_run_id,
           layer,
           category,
           address,
@@ -141,14 +150,18 @@ export class PostgresIncidentRepository implements IncidentRepository {
           $6,
           $7,
           $8,
-          $9::timestamptz,
+          $9,
+          $10,
+          $11::timestamptz,
           now(),
           now(),
-          ST_SetSRID(ST_MakePoint($10, $11), 4326)::geography,
-          $12::jsonb
+          ST_SetSRID(ST_MakePoint($12, $13), 4326)::geography,
+          $14::jsonb
         )
         on conflict (source, source_event_id)
         do update set
+          source_call_id = excluded.source_call_id,
+          enrichment_run_id = excluded.enrichment_run_id,
           layer = excluded.layer,
           category = excluded.category,
           address = excluded.address,
@@ -169,12 +182,15 @@ export class PostgresIncidentRepository implements IncidentRepository {
           status,
           created_at,
           updated_at,
+          metadata->'geocoding' as geocoding,
           ST_Y(location::geometry) as lat,
           ST_X(location::geometry) as lng
       `,
       [
         parsed.source,
         parsed.sourceEventId ?? null,
+        parsed.sourceCallId ?? null,
+        parsed.enrichmentRunId ?? null,
         parsed.layer,
         parsed.category,
         parsed.address,

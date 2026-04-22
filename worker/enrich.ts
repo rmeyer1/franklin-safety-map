@@ -1,10 +1,13 @@
 import { getEnv } from "@/lib/config/env";
 import { createEnrichmentJobRepository } from "@/lib/repositories/enrichment-jobs";
+import { createEnrichmentRunRepository } from "@/lib/repositories/enrichment-runs";
+import { createSourceCallRepository } from "@/lib/repositories/source-calls";
 import { closeDbPool } from "@/lib/server/db";
 import {
   createSourceCallEnrichmentService,
   SkippableEnrichmentError,
 } from "@/lib/services/enrich-source-call";
+import { geocodingResultSchema } from "@/lib/types/domain";
 
 const DEFAULT_JOB_TYPE = "incident_enrichment";
 const DEFAULT_WORKER_ID = `enrich-${process.pid}`;
@@ -17,12 +20,16 @@ function sleep(ms: number): Promise<void> {
 
 type WorkerDeps = {
   enrichmentJobRepository: ReturnType<typeof createEnrichmentJobRepository>;
+  enrichmentRunRepository: ReturnType<typeof createEnrichmentRunRepository>;
+  sourceCallRepository: ReturnType<typeof createSourceCallRepository>;
   sourceCallEnrichmentService: ReturnType<typeof createSourceCallEnrichmentService>;
 };
 
 function createWorkerDeps(): WorkerDeps {
   return {
     enrichmentJobRepository: createEnrichmentJobRepository(),
+    enrichmentRunRepository: createEnrichmentRunRepository(),
+    sourceCallRepository: createSourceCallRepository(),
     sourceCallEnrichmentService: createSourceCallEnrichmentService(),
   };
 }
@@ -38,7 +45,10 @@ async function processNextJob(deps: WorkerDeps, workerId: string): Promise<boole
   }
 
   try {
-    const result = await deps.sourceCallEnrichmentService.enrich(job.sourceCallId);
+    const result = await deps.sourceCallEnrichmentService.enrich({
+      sourceCallId: job.sourceCallId,
+      enrichmentJobId: job.id,
+    });
     await deps.enrichmentJobRepository.markCompleted(job.id);
 
     console.log(
@@ -58,6 +68,28 @@ async function processNextJob(deps: WorkerDeps, workerId: string): Promise<boole
     );
   } catch (error) {
     if (error instanceof SkippableEnrichmentError) {
+      const sourceCall = await deps.sourceCallRepository.getById(job.sourceCallId);
+      if (sourceCall) {
+        await deps.enrichmentRunRepository.create({
+          sourceCallId: sourceCall.id,
+          enrichmentJobId: job.id,
+          transcriptText: sourceCall.transcriptText,
+          transcriptionProvider: null,
+          extraction: {
+            skippedReason: error.reason,
+          },
+          geocoding: geocodingResultSchema.parse({
+            provider: "none",
+            resolved: false,
+            confidence: 0,
+            query: null,
+            reason: error.reason,
+            point: null,
+          }),
+          outcome: "skipped",
+        });
+      }
+
       await deps.enrichmentJobRepository.markCompleted(job.id);
       console.log(
         JSON.stringify({

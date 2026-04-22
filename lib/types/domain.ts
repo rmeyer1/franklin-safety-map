@@ -61,6 +61,14 @@ export const sourceCallSchema = z.object({
 
 export type SourceCall = z.infer<typeof sourceCallSchema>;
 
+export const storedSourceCallSchema = sourceCallSchema.extend({
+  id: z.string().uuid(),
+  rawPayload: z.unknown().default({}),
+  createdAt: z.string(),
+});
+
+export type StoredSourceCall = z.infer<typeof storedSourceCallSchema>;
+
 export const openMhzAdapterResponseSchema = z.object({
   system: z.string(),
   mode: z.enum(["direct", "fixture"]),
@@ -79,6 +87,36 @@ export const ingestCursorSchema = z.object({
 });
 
 export type IngestCursor = z.infer<typeof ingestCursorSchema>;
+
+export const enrichmentJobStatusSchema = z.enum([
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+  "dead_letter",
+]);
+
+export type EnrichmentJobStatus = z.infer<typeof enrichmentJobStatusSchema>;
+
+export const enrichmentJobSchema = z.object({
+  id: z.string().uuid(),
+  sourceCallId: z.string().uuid(),
+  jobType: z.string(),
+  status: enrichmentJobStatusSchema,
+  attemptCount: z.number().int().nonnegative(),
+  maxAttempts: z.number().int().positive(),
+  availableAt: z.string(),
+  lockedAt: z.string().nullable(),
+  lockedBy: z.string().nullable(),
+  lastError: z.string().nullable(),
+  priority: z.number().int(),
+  payload: z.unknown().default({}),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  completedAt: z.string().nullable(),
+});
+
+export type EnrichmentJob = z.infer<typeof enrichmentJobSchema>;
 
 export const transcriptionSchema = z.object({
   provider: z.enum(["whisper_local", "xai", "openai"]),

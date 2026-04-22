@@ -1,11 +1,12 @@
-# Development Roadmap & Milestone Checklist: Franklin County Safety Map
+# Development Roadmap & Milestone Checklist: Warren County Pilot Safety Map
 
 This document provides a structured execution path for the development team. The project is broken into five phases, moving from infrastructure to "Intelligence."
 
 ## 🟢 Phase 0: Source Validation & Ingestion Setup
 *Goal: Establish the software-only ingest path.*
 
-- [ ] **OpenMHz Source Validation:** Confirm the Franklin County (`frkoh`) source provides the call metadata and downloadable audio needed by the worker.
+- [x] **Pilot County Decision:** Use Warren County as the active OpenMHz pilot and keep Franklin County as a separate source-discovery track.
+- [ ] **OpenMHz Source Validation:** Confirm the Warren County-aligned `frkoh` source provides the call metadata and downloadable audio needed by the worker.
 - [x] **Source Adapter Abstraction:** Refactor ingest around a normalized `SourceAdapter` / `SourceCall` contract so the worker is not coupled to one upstream provider.
 - [ ] **Source Risk Gate:** Decide whether OpenMHz is production-viable, validation-only, or needs to be replaced by another controlled source path before expanding downstream AI work.
 - [ ] **TypeScript Worker Skeleton:** Stand up the Node.js + TypeScript worker runtime and shared config.

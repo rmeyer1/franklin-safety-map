@@ -223,6 +223,8 @@ export class SourceCallEnrichmentService {
       status: "Active",
       occurredAt: sourceCall.occurredAt,
       point: geocoding.point ?? {
+        // Unresolved geocodes still carry the county center for map display,
+        // but the geocoding metadata (resolved=false, reason) makes this explicit.
         lat: 39.43,
         lng: -84.21,
       },

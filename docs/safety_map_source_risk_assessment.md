@@ -7,7 +7,7 @@ The ingest pipeline must be **source-agnostic**. The worker should consume a nor
 
 ### OpenMHz
 Pros:
-- Existing Franklin County system page and media hosting.
+- Existing Warren County-aligned system page and media hosting for the current pilot.
 - Normal call payload structure appears compatible with incremental polling.
 - Media URLs are directly downloadable from this environment.
 

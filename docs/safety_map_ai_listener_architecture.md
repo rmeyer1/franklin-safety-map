@@ -1,6 +1,6 @@
 # AI-Listener Architecture Decision Record
 
-This document defines the supported ingest architecture for the Franklin County Safety Map. It exists to prevent drift in future implementation work and to give reviewers a single source of truth for the scanner pipeline.
+This document defines the supported ingest architecture for the current pilot safety map. It exists to prevent drift in future implementation work and to give reviewers a single source of truth for the scanner pipeline.
 
 ## 1. Canonical Architecture
 
@@ -24,7 +24,7 @@ It does **not** include:
 ## 3. Roles of Each Component
 
 ### 3.1 OpenMHz
-*   Acts as the upstream source of call metadata and hosted audio for the Franklin County system.
+*   Acts as the upstream source of call metadata and hosted audio for the current Warren County pilot via the `frkoh` system.
 *   Provides the audio artifacts that the worker downloads and processes.
 
 ### 3.2 Polling/Fetch Worker
@@ -90,3 +90,7 @@ The new decision is to prioritize a software-only MVP that:
 *   minimizes infrastructure complexity
 *   lets the team focus on transcription, extraction, and UI value
 *   avoids spending time on hardware setup that is no longer required
+
+## 7. Pilot Scope
+
+The active pilot county is Warren County because the currently validated `frkoh` OpenMHz source aligns with Warren County dispatch traffic. Franklin County remains a separate source-discovery track and is not the current pilot claim.

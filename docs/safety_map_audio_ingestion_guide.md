@@ -1,6 +1,6 @@
 # Audio Ingestion Guide: Software-Only OpenMHz Pipeline
 
-This guide describes the software-only ingest path for the Franklin County Safety Map.
+This guide describes the software-only ingest path for the current Warren County pilot.
 
 ## 1. Objective
 
@@ -12,7 +12,7 @@ The ingest pipeline is implemented in **Node.js + TypeScript**.
 
 ## 2. Source
 
-*   **Upstream system:** OpenMHz Franklin County (`frkoh`)
+*   **Upstream system:** OpenMHz `frkoh` for the current Warren County pilot
 *   **Output needed by the worker:**
     *   call identifier
     *   call timestamp
@@ -57,3 +57,5 @@ The ingest pipeline is implemented in **Node.js + TypeScript**.
 ## 6. Production Note
 
 Before production launch, validate that the intended OpenMHz access pattern is acceptable for the product's usage.
+
+Franklin County remains a source-discovery track and should not be described as the active pilot until a verified source path is available.

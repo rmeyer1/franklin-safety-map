@@ -1,4 +1,4 @@
-# Technical Architecture Specification: Franklin County Safety Map
+# Technical Architecture Specification: Warren County Pilot Safety Map
 
 ## 1. System Overview
 The platform is a **Hybrid Geospatial Aggregator**. It uses a TypeScript backend and worker runtime to refine unstructured data and a Next.js frontend to deliver that data to the user via a high-performance map.
@@ -30,7 +30,8 @@ This pipeline transforms hosted scanner audio into structured map markers using 
 **The Software Stack:**
 `OpenMHz (frkoh)` $\rightarrow$ `TypeScript Polling/Fetch Worker` $\rightarrow$ `xAI STT (primary)` / `OpenAI STT (fallback)` $\rightarrow$ `Ollama Cloud Extraction` $\rightarrow$ `Supabase` $\rightarrow$ `Vercel UI`
 
-*   **Upstream Source:** The worker ingests police dispatch audio from the **OpenMHz** Franklin County system (`frkoh`).
+<<<<<<< HEAD
+*   **Upstream Source:** The worker ingests police dispatch audio from the **OpenMHz** `frkoh` system, which is currently treated as the Warren County pilot source.
 *   **Polling Worker:** The Render TypeScript worker polls for newly published calls, stores a cursor (`time` + call ID), and deduplicates calls before processing.
 *   **Audio Retrieval:** The worker downloads the audio for each new call. The pipeline must not assume a fixed extension such as `.wav` or `.mp3`; the upstream source may publish different audio formats.
 *   **Transcription:** Audio chunks are sent first to **xAI Speech-to-Text** for transcription. If xAI is unavailable, rate-limited, or returns low-confidence / unusable output, the worker retries with **OpenAI STT** as the fallback provider.
@@ -44,6 +45,7 @@ This pipeline transforms hosted scanner audio into structured map markers using 
 *   The worker must isolate speech-to-text behind a provider interface so xAI and OpenAI can be swapped or benchmarked without rewriting the ingest pipeline.
 *   Before production launch, confirm the permitted access pattern for OpenMHz-hosted call metadata and media.
 *   The production roadmap should not assume OpenMHz remains the final source until the source-risk gate is closed.
+*   The current pilot county is Warren County; Franklin County remains a separate source-discovery track until a verified source path is proven.
 
 ### 3.2 The "Official" Pipeline (Traffic/Transit)
 `OHGO API / COTA GTFS-RT` $\rightarrow$ `TypeScript Worker` $\rightarrow$ `PostGIS` $\rightarrow$ `Vercel UI`

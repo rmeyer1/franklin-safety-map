@@ -49,11 +49,11 @@ const FRKOH_FIXTURE: FixtureData = {
   talkgroups: {
     10101: {
       alpha: "Dispatch 1",
-      description: "Franklin County Sheriff Dispatch 1",
+      description: "Warren County Sheriff Dispatch 1",
     },
     10103: {
       alpha: "Dispatch 3",
-      description: "Franklin County Sheriff Dispatch 3",
+      description: "Warren County Sheriff Dispatch 3",
     },
   },
 };

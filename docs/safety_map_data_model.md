@@ -1,4 +1,4 @@
-# Data Model Specification: Franklin County Safety Map
+# Data Model Specification: Pilot Safety Map
 
 ## 1. Geospatial Foundation
 The system relies on **PostGIS** (PostgreSQL extension) to handle all location-based data. All coordinates are stored as `GEOMETRY(Point, 4326)`.

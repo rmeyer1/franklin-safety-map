@@ -43,7 +43,7 @@ The developer MUST use the `format: "json"` parameter in the Ollama API call to 
 To maximize extraction accuracy, the following prompting techniques are required:
 
 #### A. Few-Shot Prompting
-The system prompt must include 3-5 diverse examples of `Transcribed Text` $\rightarrow$ `JSON Output` to teach the model the specific terminology of Franklin County dispatch (e.g., "10-codes").
+The system prompt must include 3-5 diverse examples of `Transcribed Text` $\rightarrow$ `JSON Output` to teach the model the specific terminology of the active pilot county's dispatch traffic. For the current pilot, those examples should reflect Warren County terminology and BSSA-style codes.
 
 #### B. Strict Schema Enforcement
 The model must be instructed to follow this exact schema:

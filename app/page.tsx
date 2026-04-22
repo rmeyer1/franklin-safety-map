@@ -22,7 +22,7 @@ export default async function HomePage() {
     <main className="shell">
       <section className="hero">
         <div>
-          <div className="eyebrow">Franklin County / Alpha Build</div>
+          <div className="eyebrow">Warren County / Alpha Pilot</div>
           <h1>Safety map for real dispatch traffic.</h1>
         </div>
         <p>
@@ -101,4 +101,3 @@ export default async function HomePage() {
     </main>
   );
 }
-

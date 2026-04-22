@@ -1,7 +1,7 @@
-# Product Requirement Document (PRD): Franklin County Real-Time Safety Map
+# Product Requirement Document (PRD): Warren County Pilot Safety Map
 
 ## 1. Executive Summary
-The goal is to build a real-time, geospatial dashboard for Franklin County, Ohio, that aggregates public safety dispatch data, traffic conditions, and transit movements. The platform transforms fragmented "dark data" (audio streams, non-API web pages) into a clean, map-based visual experience, allowing users to see a holistic picture of the county's current state.
+The goal is to build a real-time, geospatial dashboard that aggregates public safety dispatch data, traffic conditions, and transit movements. The current alpha pilot uses Warren County, Ohio dispatch traffic because the validated OpenMHz `frkoh` source aligns with Warren County today. Franklin County remains a future source-discovery target once a verified source path is available.
 
 ## 2. Core Value Proposition
 While many tools provide *one* piece of the puzzle (e.g., COTA tracker for buses or PulsePoint for fire), this platform provides the **"Single Pane of Glass"** for urban awareness. It blends official APIs with "AI-listeners" to provide a comprehensive safety and transit overlay.
@@ -17,7 +17,7 @@ A high-performance map (Mapbox) displaying four distinct data layers:
 *   **Details:** Marker colors based on incident type; click-to-expand for incident details (e.g., "Medical Emergency - Unit E3 responding").
 
 #### 3.1.2 Police & Crime Layer (The "AI-Listener" Feed)
-*   **Source:** OpenMHz (`frkoh`) hosted call audio and metadata.
+*   **Source:** OpenMHz (`frkoh`) hosted call audio and metadata for the current Warren County pilot.
 *   **Capability:** Text-based incident markers parsed from radio dispatch.
 *   **Logic:** Use a background Node.js/TypeScript worker to poll for new calls, download audio, transcribe it with **xAI Speech-to-Text**, fall back to **OpenAI STT** when needed, run LLM extraction, and publish structured incidents to the map.
 *   **Details:** Distinguish between "Confirmed Crime" and "Active Dispatch."

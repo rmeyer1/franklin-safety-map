@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Franklin Safety Map",
-  description: "Real-time public safety and mobility dashboard for Franklin County.",
+  title: "Warren Safety Map",
+  description: "Real-time public safety and mobility dashboard for the current Warren County pilot.",
 };
 
 export default function RootLayout({
@@ -17,4 +17,3 @@ export default function RootLayout({
     </html>
   );
 }
-

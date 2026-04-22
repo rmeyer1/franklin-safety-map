@@ -1,70 +1,17 @@
-import { createIngestCursorRepository } from "@/lib/repositories/ingest-cursors";
-import { createIncidentRepository } from "@/lib/repositories/incidents";
-import { closeDbPool } from "@/lib/server/db";
-import { createIncidentExtractionService } from "@/lib/services/extract-incident";
-import { createSourceAdapter } from "@/lib/sources";
-import {
-  createTranscriptionService,
-  TranscriptionFailedError,
-} from "@/lib/services/transcribe-audio";
 import { getEnv } from "@/lib/config/env";
-import type { IngestCursor, SourceCall, Transcription } from "@/lib/types/domain";
+import { createEnrichmentJobRepository } from "@/lib/repositories/enrichment-jobs";
+import { createIngestCursorRepository } from "@/lib/repositories/ingest-cursors";
+import { createSourceCallRepository } from "@/lib/repositories/source-calls";
+import { closeDbPool } from "@/lib/server/db";
+import { createSourceAdapter } from "@/lib/sources";
+import type { IngestCursor, SourceCall } from "@/lib/types/domain";
+
+const DEFAULT_JOB_TYPE = "incident_enrichment";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
-}
-
-function inferMimeType(url: string, contentType: string | null): string {
-  if (contentType && contentType.length > 0) {
-    return contentType.split(";")[0];
-  }
-
-  if (url.endsWith(".wav")) return "audio/wav";
-  if (url.endsWith(".m4a")) return "audio/mp4";
-  if (url.endsWith(".ogg")) return "audio/ogg";
-  if (url.endsWith(".webm")) return "audio/webm";
-  return "audio/mpeg";
-}
-
-async function downloadAudio(
-  url: string,
-): Promise<{ audio: Buffer; mimeType: string }> {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Audio download failed with status ${response.status}`);
-  }
-
-  return {
-    audio: Buffer.from(await response.arrayBuffer()),
-    mimeType: inferMimeType(url, response.headers.get("content-type")),
-  };
-}
-
-function inferFileExtension(url: string, mimeType: string): string {
-  const pathname = new URL(url).pathname.toLowerCase();
-  const dotIndex = pathname.lastIndexOf(".");
-  if (dotIndex > pathname.lastIndexOf("/")) {
-    const fromUrl = pathname.slice(dotIndex + 1);
-    if (fromUrl.length > 0 && fromUrl.length <= 8) {
-      return fromUrl;
-    }
-  }
-
-  switch (mimeType) {
-    case "audio/wav":
-      return "wav";
-    case "audio/mp4":
-      return "m4a";
-    case "audio/ogg":
-      return "ogg";
-    case "audio/webm":
-      return "webm";
-    default:
-      return "mp3";
-  }
 }
 
 async function advanceCursorForCall(
@@ -82,136 +29,32 @@ async function advanceCursorForCall(
 type WorkerDeps = {
   sourceAdapter: ReturnType<typeof createSourceAdapter>;
   cursorRepository: ReturnType<typeof createIngestCursorRepository>;
-  incidentRepository: ReturnType<typeof createIncidentRepository>;
-  transcriptionService: ReturnType<typeof createTranscriptionService>;
-  extractionService: ReturnType<typeof createIncidentExtractionService>;
+  sourceCallRepository: ReturnType<typeof createSourceCallRepository>;
+  enrichmentJobRepository: ReturnType<typeof createEnrichmentJobRepository>;
 };
 
 function createWorkerDeps(): WorkerDeps {
   return {
     sourceAdapter: createSourceAdapter(),
     cursorRepository: createIngestCursorRepository(),
-    incidentRepository: createIncidentRepository(),
-    transcriptionService: createTranscriptionService(),
-    extractionService: createIncidentExtractionService(),
+    sourceCallRepository: createSourceCallRepository(),
+    enrichmentJobRepository: createEnrichmentJobRepository(),
   };
 }
 
 async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
-  const {
-    sourceAdapter,
-    cursorRepository,
-    incidentRepository,
-    transcriptionService,
-    extractionService,
-  } = deps;
-
-  let transcriptText = call.transcriptText;
-  let transcriptionProvider: Transcription["provider"] | "source" = "source";
-
-  if (!transcriptText) {
-    if (!call.audioUrl) {
-      await advanceCursorForCall(deps, call);
-      console.log(
-        JSON.stringify({
-          source: call.source,
-          sourceEventId: call.sourceEventId,
-          skipped: true,
-          reason: "missing_audio_and_transcript",
-        }),
-      );
-      return;
-    }
-
-    const { audio, mimeType } = await downloadAudio(call.audioUrl);
-    const fallbackFileName = `${call.sourceEventId}.${inferFileExtension(call.audioUrl, mimeType)}`;
-    let transcription;
-
-    try {
-      transcription = await transcriptionService.transcribe({
-        audio,
-        fileName: call.fileName ?? fallbackFileName,
-        mimeType,
-      });
-    } catch (error) {
-      if (
-        error instanceof TranscriptionFailedError &&
-        error.kind === "no_speech"
-      ) {
-        await advanceCursorForCall(deps, call);
-        console.log(
-          JSON.stringify({
-            source: call.source,
-            sourceEventId: call.sourceEventId,
-            skipped: true,
-            reason: "no_speech_detected",
-          }),
-        );
-        return;
-      }
-
-      throw error;
-    }
-
-    transcriptText = transcription.text;
-    transcriptionProvider = transcription.provider;
-  }
-
-  const incident = await extractionService.extractFromTranscript({
-    transcript: transcriptText,
-    channel: call.channel,
-    label: call.label,
+  const storedCall = await deps.sourceCallRepository.put({
+    call,
+    rawPayload: call,
   });
 
-  const hasIncidentSignal =
-    incident.incidentType !== null ||
-    incident.matchedCodes.some((match) => match.role === "incident");
-
-  if (!hasIncidentSignal && incident.confidence < 0.6) {
-    await advanceCursorForCall(deps, call);
-    console.log(
-      JSON.stringify({
-        source: call.source,
-        sourceEventId: call.sourceEventId,
-        occurredAtMs: call.occurredAtMs,
-        skipped: true,
-        reason: "low_confidence_non_incident",
-        statusHint: incident.statusHint,
-        extractionConfidence: incident.confidence,
-      }),
-    );
-    return;
-  }
-
-  const savedIncident = await incidentRepository.upsert({
-    source: call.source,
-    sourceEventId: call.sourceEventId,
-    layer: "police",
-    category: incident.category ?? "Radio Dispatch",
-    address: incident.address ?? call.label ?? "Unknown location",
-    description: incident.summary,
-    severity: incident.severity,
-    status: "Active",
-    occurredAt: call.occurredAt,
-    point: {
-      lat: 39.9612,
-      lng: -82.9988,
-    },
-    metadata: {
-      channel: call.channel,
-      label: call.label,
-      audioUrl: call.audioUrl,
-      durationSeconds: call.durationSeconds,
-      transcript: transcriptText,
-      transcriptionProvider,
-      extraction: {
-        incidentType: incident.incidentType,
-        statusHint: incident.statusHint,
-        confidence: incident.confidence,
-        matchedCodes: incident.matchedCodes,
-      },
-      geocoded: false,
-      sourceMetadata: call.metadata,
+  const job = await deps.enrichmentJobRepository.enqueue({
+    sourceCallId: storedCall.id,
+    jobType: DEFAULT_JOB_TYPE,
+    payload: {
+      source: call.source,
+      sourceEventId: call.sourceEventId,
+      cursorKey: call.cursorKey,
     },
   });
 
@@ -222,13 +65,10 @@ async function processCall(deps: WorkerDeps, call: SourceCall): Promise<void> {
       source: call.source,
       sourceEventId: call.sourceEventId,
       occurredAtMs: call.occurredAtMs,
-      provider: transcriptionProvider,
-      severity: incident.severity,
-      category: incident.category,
-      incidentType: incident.incidentType,
-      statusHint: incident.statusHint,
-      extractionConfidence: incident.confidence,
-      incidentId: savedIncident.id,
+      sourceCallId: storedCall.id,
+      jobId: job.id,
+      jobType: job.jobType,
+      status: "enqueued",
     }),
   );
 }

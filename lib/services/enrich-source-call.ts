@@ -1,13 +1,18 @@
 import { createEnrichmentRunRepository } from "@/lib/repositories/enrichment-runs";
 import { createIncidentRepository } from "@/lib/repositories/incidents";
 import { createSourceCallRepository } from "@/lib/repositories/source-calls";
+import { createIncidentAuditService } from "@/lib/services/audit-incident";
 import { createIncidentExtractionService } from "@/lib/services/extract-incident";
 import { createGeocodingService } from "@/lib/services/geocode";
 import {
   createTranscriptionService,
   TranscriptionFailedError,
 } from "@/lib/services/transcribe-audio";
-import type { StoredSourceCall, Transcription } from "@/lib/types/domain";
+import type {
+  PublishDecision,
+  StoredSourceCall,
+  Transcription,
+} from "@/lib/types/domain";
 
 function inferMimeType(url: string, contentType: string | null): string {
   if (contentType && contentType.length > 0) {
@@ -77,12 +82,14 @@ type EnrichSourceCallDeps = {
   geocodingService: ReturnType<typeof createGeocodingService>;
   transcriptionService: ReturnType<typeof createTranscriptionService>;
   extractionService: ReturnType<typeof createIncidentExtractionService>;
+  auditService: ReturnType<typeof createIncidentAuditService>;
 };
 
-export type EnrichSourceCallResult = {
+export type PublishedEnrichSourceCallResult = {
   outcome: "incident";
   sourceCall: StoredSourceCall;
   incidentId: string;
+  publishDecision: PublishDecision;
   transcriptionProvider: Transcription["provider"] | "source";
   category: string | null;
   incidentType: string | null;
@@ -90,6 +97,22 @@ export type EnrichSourceCallResult = {
   statusHint: "new" | "update" | "clear" | "unknown";
   extractionConfidence: number;
 };
+
+export type SuppressedEnrichSourceCallResult = {
+  outcome: "suppressed";
+  sourceCall: StoredSourceCall;
+  publishDecision: PublishDecision;
+  transcriptionProvider: Transcription["provider"] | "source";
+  category: string | null;
+  incidentType: string | null;
+  severity: number;
+  statusHint: "new" | "update" | "clear" | "unknown";
+  extractionConfidence: number;
+};
+
+export type EnrichSourceCallResult =
+  | PublishedEnrichSourceCallResult
+  | SuppressedEnrichSourceCallResult;
 
 export function shouldPublishIncident(input: {
   incidentType: string | null;
@@ -116,6 +139,7 @@ export class SourceCallEnrichmentService {
       geocodingService,
       transcriptionService,
       extractionService,
+      auditService,
     } = this.deps;
 
     let sourceCall = await sourceCallRepository.getById(input.sourceCallId);
@@ -191,6 +215,54 @@ export class SourceCallEnrichmentService {
       locationText: incident.locationText,
       label: sourceCall.label,
     });
+    const publishDecision = auditService.review({
+      incident,
+      geocoding,
+      extractionMetadata: extraction.metadata,
+    });
+    const finalIncident = {
+      ...incident,
+      confidence: publishDecision.finalConfidence,
+      needsReview: publishDecision.needsReview,
+    };
+
+    if (!publishDecision.publishable) {
+      await enrichmentRunRepository.create({
+        sourceCallId: sourceCall.id,
+        enrichmentJobId: input.enrichmentJobId ?? null,
+        transcriptText,
+        transcriptionProvider,
+        extraction: {
+          incidentType: finalIncident.incidentType,
+          category: finalIncident.category,
+          locationText: finalIncident.locationText,
+          address: finalIncident.address,
+          summary: finalIncident.summary,
+          severity: finalIncident.severity,
+          statusHint: finalIncident.statusHint,
+          confidence: finalIncident.confidence,
+          needsReview: finalIncident.needsReview,
+          matchedCodes: finalIncident.matchedCodes,
+          metadata: extraction.metadata,
+          publishDecision,
+          skippedReason: "auditor_suppressed",
+        },
+        geocoding,
+        outcome: "skipped",
+      });
+
+      return {
+        outcome: "suppressed",
+        sourceCall,
+        publishDecision,
+        transcriptionProvider,
+        category: finalIncident.category,
+        incidentType: finalIncident.incidentType,
+        severity: finalIncident.severity,
+        statusHint: finalIncident.statusHint,
+        extractionConfidence: finalIncident.confidence,
+      };
+    }
 
     const enrichmentRun = await enrichmentRunRepository.create({
       sourceCallId: sourceCall.id,
@@ -198,17 +270,18 @@ export class SourceCallEnrichmentService {
       transcriptText,
       transcriptionProvider,
       extraction: {
-        incidentType: incident.incidentType,
-        category: incident.category,
-        locationText: incident.locationText,
-        address: incident.address,
-        summary: incident.summary,
-        severity: incident.severity,
-        statusHint: incident.statusHint,
-        confidence: incident.confidence,
-        needsReview: incident.needsReview,
-        matchedCodes: incident.matchedCodes,
+        incidentType: finalIncident.incidentType,
+        category: finalIncident.category,
+        locationText: finalIncident.locationText,
+        address: finalIncident.address,
+        summary: finalIncident.summary,
+        severity: finalIncident.severity,
+        statusHint: finalIncident.statusHint,
+        confidence: finalIncident.confidence,
+        needsReview: finalIncident.needsReview,
+        matchedCodes: finalIncident.matchedCodes,
         metadata: extraction.metadata,
+        publishDecision,
       },
       geocoding,
       outcome: "published",
@@ -220,10 +293,10 @@ export class SourceCallEnrichmentService {
       sourceCallId: sourceCall.id,
       enrichmentRunId: enrichmentRun.id,
       layer: "police",
-      category: incident.category ?? "Radio Dispatch",
-      address: incident.address ?? sourceCall.label ?? "Unknown location",
-      description: incident.summary,
-      severity: incident.severity,
+      category: finalIncident.category ?? "Radio Dispatch",
+      address: finalIncident.address ?? sourceCall.label ?? "Unknown location",
+      description: finalIncident.summary,
+      severity: finalIncident.severity,
       status: "Active",
       occurredAt: sourceCall.occurredAt,
       point: geocoding.point ?? {
@@ -240,13 +313,14 @@ export class SourceCallEnrichmentService {
         transcript: transcriptText,
         transcriptionProvider,
         extraction: {
-          incidentType: incident.incidentType,
-          statusHint: incident.statusHint,
-          confidence: incident.confidence,
-          needsReview: incident.needsReview,
-          matchedCodes: incident.matchedCodes,
+          incidentType: finalIncident.incidentType,
+          statusHint: finalIncident.statusHint,
+          confidence: finalIncident.confidence,
+          needsReview: finalIncident.needsReview,
+          matchedCodes: finalIncident.matchedCodes,
           metadata: extraction.metadata,
         },
+        publishDecision,
         geocoding,
         sourceMetadata: sourceCall.metadata,
       },
@@ -256,12 +330,13 @@ export class SourceCallEnrichmentService {
       outcome: "incident",
       sourceCall,
       incidentId: savedIncident.id,
+      publishDecision,
       transcriptionProvider,
-      category: incident.category,
-      incidentType: incident.incidentType,
-      severity: incident.severity,
-      statusHint: incident.statusHint,
-      extractionConfidence: incident.confidence,
+      category: finalIncident.category,
+      incidentType: finalIncident.incidentType,
+      severity: finalIncident.severity,
+      statusHint: finalIncident.statusHint,
+      extractionConfidence: finalIncident.confidence,
     };
   }
 }
@@ -274,5 +349,6 @@ export function createSourceCallEnrichmentService(): SourceCallEnrichmentService
     geocodingService: createGeocodingService(),
     transcriptionService: createTranscriptionService(),
     extractionService: createIncidentExtractionService(),
+    auditService: createIncidentAuditService(),
   });
 }

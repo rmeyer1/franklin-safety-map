@@ -201,6 +201,50 @@ export const extractionMetadataSchema = z.object({
 
 export type ExtractionMetadata = z.infer<typeof extractionMetadataSchema>;
 
+export const auditReasonSchema = z.enum([
+  "high_severity",
+  "high_risk_category",
+  "low_extraction_confidence",
+  "extraction_signal_conflict",
+  "weak_location",
+  "extractor_requested_review",
+  "extraction_fallback_used",
+]);
+
+export type AuditReason = z.infer<typeof auditReasonSchema>;
+
+export const auditActionSchema = z.enum([
+  "confirm_publish",
+  "downgrade_confidence",
+  "mark_needs_review",
+  "suppress_publish",
+]);
+
+export type AuditAction = z.infer<typeof auditActionSchema>;
+
+export const auditRouteSchema = z.enum([
+  "direct_publish",
+  "audited_publish",
+  "suppressed",
+]);
+
+export type AuditRoute = z.infer<typeof auditRouteSchema>;
+
+export const publishDecisionSchema = z.object({
+  route: auditRouteSchema,
+  publishable: z.boolean(),
+  audited: z.boolean(),
+  actions: z.array(auditActionSchema),
+  reasons: z.array(auditReasonSchema),
+  initialConfidence: z.number().min(0).max(1),
+  finalConfidence: z.number().min(0).max(1),
+  needsReview: z.boolean(),
+  provider: z.string(),
+  metadata: z.record(z.string(), z.unknown()).default({}),
+});
+
+export type PublishDecision = z.infer<typeof publishDecisionSchema>;
+
 export const extractionResultSchema = z.object({
   incident: extractedIncidentSchema,
   metadata: extractionMetadataSchema,
@@ -220,6 +264,7 @@ export const enrichmentRunExtractionSchema = z.object({
   needsReview: z.boolean().optional(),
   matchedCodes: extractedIncidentSchema.shape.matchedCodes.optional(),
   metadata: extractionMetadataSchema.optional(),
+  publishDecision: publishDecisionSchema.optional(),
   skippedReason: z.string().optional(),
 });
 

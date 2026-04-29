@@ -56,32 +56,45 @@ Confirm logs show either:
 - `provider:"whisper_local"` (preferred)
 - Fallback `provider:"xai"` / `provider:"openai"` if Whisper unavailable
 
-### 4. Install launchd Service
+### 4. Install launchd Services
+
+Two workers run continuously:
+- **Ingest worker** (`com.franklin.worker`) — polls OpenMHz for new calls
+- **Enrichment worker** (`com.franklin.enrich-worker`) — transcribes & extracts incidents
 
 ```bash
-# Copy the plist
+# Copy the plists
 cp deployment/mac-mini/com.franklin.worker.plist ~/Library/LaunchAgents/
+cp deployment/mac-mini/com.franklin.enrich-worker.plist ~/Library/LaunchAgents/
 
-# Load the service
+# Load both services
 launchctl unload ~/Library/LaunchAgents/com.franklin.worker.plist 2>/dev/null || true
 launchctl load ~/Library/LaunchAgents/com.franklin.worker.plist
+launchctl unload ~/Library/LaunchAgents/com.franklin.enrich-worker.plist 2>/dev/null || true
+launchctl load ~/Library/LaunchAgents/com.franklin.enrich-worker.plist
 
-# Verify it's running
-launchctl list | grep com.franklin.worker
+# Verify both are running
+launchctl list | grep com.franklin
 ```
 
 ### 5. Monitor
 
 ```bash
+# Ingest worker
 tail -f ~/Library/Logs/franklin-worker.log
 tail -f ~/Library/Logs/franklin-worker.err.log
+
+# Enrichment worker
+tail -f ~/Library/Logs/franklin-enrich-worker.log
+tail -f ~/Library/Logs/franklin-enrich-worker.err.log
 ```
 
 ## Updating the Worker
 
 ```bash
-# Stop the service
+# Stop both services
 launchctl unload ~/Library/LaunchAgents/com.franklin.worker.plist
+launchctl unload ~/Library/LaunchAgents/com.franklin.enrich-worker.plist
 
 # Pull latest
 cd franklin-safety-map
@@ -89,8 +102,9 @@ git pull --rebase origin main
 npm ci
 npm run build
 
-# Restart
+# Restart both
 launchctl load ~/Library/LaunchAgents/com.franklin.worker.plist
+launchctl load ~/Library/LaunchAgents/com.franklin.enrich-worker.plist
 ```
 
 ## Troubleshooting
@@ -105,16 +119,22 @@ launchctl load ~/Library/LaunchAgents/com.franklin.worker.plist
 ## Service Management
 
 ```bash
-# Check status
-launchctl list | grep com.franklin.worker
+# Check both services
+launchctl list | grep com.franklin
 
-# Stop
+# Stop both
 launchctl unload ~/Library/LaunchAgents/com.franklin.worker.plist
+launchctl unload ~/Library/LaunchAgents/com.franklin.enrich-worker.plist
 
-# Start
+# Start both
 launchctl load ~/Library/LaunchAgents/com.franklin.worker.plist
+launchctl load ~/Library/LaunchAgents/com.franklin.enrich-worker.plist
 
-# View recent logs
+# View recent logs (ingest)
 tail -50 ~/Library/Logs/franklin-worker.log
 tail -50 ~/Library/Logs/franklin-worker.err.log
+
+# View recent logs (enrichment)
+tail -50 ~/Library/Logs/franklin-enrich-worker.log
+tail -50 ~/Library/Logs/franklin-enrich-worker.err.log
 ```

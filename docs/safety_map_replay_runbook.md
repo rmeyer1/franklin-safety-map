@@ -74,6 +74,79 @@ npm run db:reenqueue -- --ids 550e8400-e29b-41d4-a716-446655440000,660e8400-e29b
 
 ---
 
+## Evaluating Extraction Quality
+
+Use the evaluation harness before promoting prompt, model, codebook, geocoder, or audit changes into UAT.
+
+```bash
+npm run eval:extraction -- --provider heuristic --pretty
+```
+
+By default this reads:
+
+```text
+data/evaluation/warren-county-extraction.sample.json
+```
+
+The report is JSON and includes:
+
+| Metric | Meaning |
+|---|---|
+| `publishPrecision` | Published calls that were expected to publish |
+| `falsePositiveRate` | Expected skips that were incorrectly published |
+| `skipRate` | Share of calls skipped or suppressed by extraction/audit logic |
+| `locationExtractionAccuracy` | Labeled location text matched by extracted location/address |
+| `categoryAccuracy` | Labeled category/incident type matched by extraction |
+| `severityAccuracy` | Labeled severity matched by extraction |
+| `reviewRate` | Share of calls marked for review |
+| `escalationRate` | Share of calls routed through audited publish or suppression |
+| `suppressedRate` | Share of calls suppressed by the auditor |
+
+### Compare Prompt or Model Versions
+
+```bash
+npm run eval:extraction -- \
+  --provider ollama \
+  --prompt-version v2 \
+  --model llama3.1:8b \
+  --output reports/eval-v2.json \
+  --pretty
+```
+
+The output records `promptVersion`, `model`, `generatedAt`, and per-call results so two runs can be diffed with normal JSON tooling.
+
+### Evaluate Historical `source_calls`
+
+The harness can replay historical transcripts directly from `source_calls` without calling upstream adapters, enqueueing jobs, or writing incidents:
+
+```bash
+npm run eval:extraction -- \
+  --provider heuristic \
+  --source openmhz \
+  --since 2026-04-01T00:00:00Z \
+  --until 2026-04-02T00:00:00Z \
+  --limit 100 \
+  --output reports/eval-openmhz-2026-04-01.json \
+  --pretty
+```
+
+When a historical row matches an item in the labels file by `sourceCallId` or `sourceEventId`, that label is used. Otherwise the row is treated as expected publish by default, which is useful for operational smoke checks but should not replace a curated labeled set for precision/false-positive measurement.
+
+### Maintaining Labels
+
+Add reviewed Warren County examples to the evaluation JSON with:
+
+- transcript and source identifiers
+- expected publish/skip decision
+- expected category or incident type
+- expected severity when known
+- expected location text when present
+- expected review state when known
+
+Keep the labeled set small enough to run quickly, but include known misses, false positives, unresolved locations, high-risk calls, and routine unit/status traffic.
+
+---
+
 ## Running the Enrichment Worker
 
 The worker processes jobs from the `enrichment_jobs` queue.

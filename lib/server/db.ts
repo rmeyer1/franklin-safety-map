@@ -1,6 +1,9 @@
-import { Pool } from "pg";
+import { Pool, types } from "pg";
 
 import { getEnv } from "@/lib/config/env";
+
+// Ensure bigint values are returned as JavaScript numbers, not strings
+types.setTypeParser(types.builtins.INT8, (val) => Number(val));
 
 let pool: Pool | undefined;
 
@@ -15,8 +18,13 @@ export function getDbPool(): Pool {
     throw new Error("SUPABASE_DB_URL is not configured");
   }
 
+  // Prefer the pooler URL if set (IPv4-compatible for Vercel serverless),
+  // otherwise use the direct connection URL (works locally with IPv6).
+  const poolerUrl = getEnv().SUPABASE_DB_POOLER_URL;
+  const resolvedConnectionString = poolerUrl || connectionString;
+
   pool = new Pool({
-    connectionString,
+    connectionString: resolvedConnectionString,
     ssl: {
       rejectUnauthorized: false,
     },

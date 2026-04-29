@@ -1,4 +1,8 @@
-import { createIncidentRepository } from "@/lib/repositories/incidents";
+import {
+  createIncidentRepository,
+  InMemoryIncidentRepository,
+} from "@/lib/repositories/incidents";
+import type { Incident } from "@/lib/types/domain";
 
 export const dynamic = "force-dynamic";
 
@@ -6,9 +10,19 @@ function severityCount(counts: number[], index: number) {
   return counts[index] ?? 0;
 }
 
+async function getIncidents(): Promise<Incident[]> {
+  try {
+    const repository = createIncidentRepository();
+    return await repository.listActive();
+  } catch (error) {
+    console.error("Failed to load incidents, using fallback:", error);
+    const fallback = new InMemoryIncidentRepository();
+    return fallback.listActive();
+  }
+}
+
 export default async function HomePage() {
-  const repository = createIncidentRepository();
-  const incidents = await repository.listActive();
+  const incidents = await getIncidents();
 
   const counts = incidents.reduce(
     (acc, incident) => {

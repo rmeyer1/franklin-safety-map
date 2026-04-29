@@ -209,9 +209,17 @@ export class PostgresIncidentRepository implements IncidentRepository {
 }
 
 export function createIncidentRepository(): IncidentRepository {
-  if (getEnv().SUPABASE_DB_URL) {
+  if (getEnv().SUPABASE_DB_URL || getEnv().SUPABASE_DB_POOLER_URL) {
     return new PostgresIncidentRepository();
   }
 
+  return new InMemoryIncidentRepository();
+}
+
+/**
+ * Creates an in-memory repository with mock data.
+ * Used as a fallback when the database is unreachable.
+ */
+export function createInMemoryFallback(): IncidentRepository {
   return new InMemoryIncidentRepository();
 }

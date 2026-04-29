@@ -51,6 +51,29 @@ async function processNextJob(deps: WorkerDeps, workerId: string): Promise<boole
     });
     await deps.enrichmentJobRepository.markCompleted(job.id);
 
+    if (result.outcome === "suppressed") {
+      console.log(
+        JSON.stringify({
+          jobId: job.id,
+          sourceCallId: job.sourceCallId,
+          sourceEventId: result.sourceCall.sourceEventId,
+          provider: result.transcriptionProvider,
+          severity: result.severity,
+          category: result.category,
+          incidentType: result.incidentType,
+          statusHint: result.statusHint,
+          extractionConfidence: result.extractionConfidence,
+          publishRoute: result.publishDecision.route,
+          publishable: result.publishDecision.publishable,
+          auditReasons: result.publishDecision.reasons,
+          auditActions: result.publishDecision.actions,
+          suppressed: true,
+          status: "completed",
+        }),
+      );
+      return true;
+    }
+
     console.log(
       JSON.stringify({
         jobId: job.id,
@@ -63,6 +86,10 @@ async function processNextJob(deps: WorkerDeps, workerId: string): Promise<boole
         statusHint: result.statusHint,
         extractionConfidence: result.extractionConfidence,
         incidentId: result.incidentId,
+        publishRoute: result.publishDecision.route,
+        publishable: result.publishDecision.publishable,
+        auditReasons: result.publishDecision.reasons,
+        auditActions: result.publishDecision.actions,
         status: "completed",
       }),
     );

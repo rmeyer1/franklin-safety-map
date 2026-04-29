@@ -16,7 +16,8 @@
     "openmhz:validate-capture": "tsx scripts/validate-openmhz-capture.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed-mock-incidents.ts",
-    "db:reenqueue": "tsx scripts/reenqueue.ts"
+    "db:reenqueue": "tsx scripts/reenqueue.ts",
+    "eval:extraction": "tsx scripts/evaluate-extraction.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.80.0",

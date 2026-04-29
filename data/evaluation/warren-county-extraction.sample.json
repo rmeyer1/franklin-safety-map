@@ -1,0 +1,91 @@
+{
+  "name": "warren-county-extraction-sample",
+  "description": "Small labeled Warren County dispatch evaluation set for extraction, publish, location, and review metrics.",
+  "items": [
+    {
+      "id": "wc-sample-001",
+      "source": "openmhz",
+      "sourceEventId": "sample-structure-fire",
+      "occurredAt": "2026-04-21T12:00:00.000Z",
+      "transcript": "Station 16, request mutual aid for a ladder at 10406 Brentwood Pike Apartment 216 for a structure fire.",
+      "channel": "frkoh",
+      "label": "10406 Brentwood Pike",
+      "expected": {
+        "publish": true,
+        "category": "Structure Fire",
+        "incidentType": "Structure Fire",
+        "severity": 5,
+        "locationText": "10406 Brentwood Pike",
+        "needsReview": true
+      }
+    },
+    {
+      "id": "wc-sample-002",
+      "source": "openmhz",
+      "sourceEventId": "sample-bank-theft",
+      "occurredAt": "2026-04-21T12:05:00.000Z",
+      "transcript": "8101 Waynesboro needs to file a report reference bank theft.",
+      "channel": "frkoh",
+      "label": "8101 Waynesboro",
+      "expected": {
+        "publish": true,
+        "category": "Theft",
+        "incidentType": "Theft",
+        "severity": 2,
+        "locationText": "8101 Waynesboro",
+        "needsReview": true
+      }
+    },
+    {
+      "id": "wc-sample-003",
+      "source": "openmhz",
+      "sourceEventId": "sample-missing-person",
+      "occurredAt": "2026-04-21T12:10:00.000Z",
+      "transcript": "2 0 31, a missing person, West Laurel Spring Drive, Beckworth.",
+      "channel": "frkoh",
+      "label": "West Laurel Spring Drive",
+      "expected": {
+        "publish": true,
+        "category": "Missing Person",
+        "incidentType": "Missing Person",
+        "severity": 4,
+        "locationText": "West Laurel Spring Drive",
+        "needsReview": true
+      }
+    },
+    {
+      "id": "wc-sample-004",
+      "source": "openmhz",
+      "sourceEventId": "sample-unit-clear",
+      "occurredAt": "2026-04-21T12:15:00.000Z",
+      "transcript": "13 York Clear 22 54.",
+      "channel": "frkoh",
+      "label": null,
+      "expected": {
+        "publish": false,
+        "category": null,
+        "incidentType": null,
+        "severity": null,
+        "locationText": null,
+        "needsReview": true
+      }
+    },
+    {
+      "id": "wc-sample-005",
+      "source": "openmhz",
+      "sourceEventId": "sample-unit-traffic",
+      "occurredAt": "2026-04-21T12:20:00.000Z",
+      "transcript": "2 Lincoln 32 SF non-active 81 41 Waynesboro.",
+      "channel": "frkoh",
+      "label": "Waynesboro",
+      "expected": {
+        "publish": false,
+        "category": null,
+        "incidentType": null,
+        "severity": null,
+        "locationText": null,
+        "needsReview": true
+      }
+    }
+  ]
+}

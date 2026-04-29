@@ -1,5 +1,7 @@
 import { createIncidentRepository } from "@/lib/repositories/incidents";
 
+export const dynamic = "force-dynamic";
+
 function severityCount(counts: number[], index: number) {
   return counts[index] ?? 0;
 }

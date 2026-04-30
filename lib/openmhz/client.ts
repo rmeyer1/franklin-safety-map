@@ -4,6 +4,7 @@ import {
   type IngestCursor,
   type OpenMhzCall,
 } from "@/lib/types/domain";
+import { cfFetchJson, invalidateCfCookies, isPlaywrightAvailable } from "./cf-fetch";
 
 export interface OpenMhzClient {
   pollCalls(cursor: IngestCursor | null): Promise<OpenMhzCall[]>;
@@ -144,11 +145,6 @@ function buildAllowedTalkgroups(envValue?: string): Set<number> | null {
 
 export class OpenMhzHttpClient implements OpenMhzClient {
   private talkgroupsCache?: OpenMhzTalkgroupMap;
-  private readonly requestHeaders: HeadersInit = {
-    Accept: "application/json, text/plain;q=0.9, */*;q=0.8",
-    "User-Agent":
-      "Mozilla/5.0 (compatible; franklin-safety-map-ingest/1.0)",
-  };
 
   constructor(
     private readonly system = getEnv().OPENMHZ_SYSTEM,
@@ -156,7 +152,13 @@ export class OpenMhzHttpClient implements OpenMhzClient {
       calls: Array<Record<string, unknown>>;
       talkgroups: Record<number, { alpha?: string; description?: string }>;
     },
-  ) {}
+  ) {
+    if (isPlaywrightAvailable()) {
+      console.log("[OpenMhzHttpClient] Playwright available — Cloudflare bypass enabled");
+    } else {
+      console.warn("[OpenMhzHttpClient] Playwright NOT available — Cloudflare may block requests");
+    }
+  }
 
   static fromFixture(
     system: string,
@@ -202,16 +204,17 @@ export class OpenMhzHttpClient implements OpenMhzClient {
       url.search = params.toString();
     }
 
-    const response = await fetch(url, {
-      headers: this.requestHeaders,
-      cache: "no-store",
-    });
+    const result = await cfFetchJson(url);
 
-    if (!response.ok) {
-      throw new Error(`OpenMHz request failed with status ${response.status} for ${url.toString()}`);
+    if (!result.ok) {
+      if (result.status === 403) {
+        // Cloudflare blocked — cookies may have expired, will retry on next poll
+        invalidateCfCookies();
+      }
+      throw new Error(`OpenMHz request failed with status ${result.status} for ${url.toString()}`);
     }
 
-    return (await response.json()) as unknown;
+    return result.data;
   }
 
   private async getTalkgroups(): Promise<OpenMhzTalkgroupMap> {

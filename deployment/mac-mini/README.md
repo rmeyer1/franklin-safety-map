@@ -41,6 +41,7 @@ Required settings for worker mode:
 | `XAI_API_KEY` | ✅ | Primary STT fallback |
 | `OPENAI_API_KEY` | Recommended | Secondary STT fallback |
 | `SUPABASE_DB_URL` | ✅ | Database connection string |
+| `OPENMHZ_API_BASE_URL` | ✅ | Set to `https://openmhz.com` for direct polling |
 | `WORKER_MODE` | ✅ | Set to `loop` |
 | `WORKER_POLL_INTERVAL_MS` | | Default: `10000` |
 | `WORKER_ERROR_BACKOFF_MS` | | Default: `30000` |
@@ -106,6 +107,17 @@ npm run build
 launchctl load ~/Library/LaunchAgents/com.franklin.worker.plist
 launchctl load ~/Library/LaunchAgents/com.franklin.enrich-worker.plist
 ```
+
+## Ingest Source Configuration
+
+The ingest worker can fetch calls from OpenMHz in two ways:
+
+| Mode | Env vars | When to use |
+|------|----------|-------------|
+| **Direct** | `OPENMHZ_API_BASE_URL=https://openmhz.com` | Local worker (Mac mini). Worker polls OpenMHz directly and writes to Supabase. |
+| **Adapter** | `OPENMHZ_ADAPTER_BASE_URL=<vercel-url>` | When routing through the Vercel API endpoint. Not recommended for local workers — Vercel serverless can't reach IPv6-only Supabase hosts. |
+
+The launchd plist for the ingest worker sets `OPENMHZ_API_BASE_URL` and clears `OPENMHZ_ADAPTER_BASE_URL` so it polls OpenMHz directly. This bypasses Vercel entirely and writes calls directly to Supabase from the Mac mini.
 
 ## Troubleshooting
 

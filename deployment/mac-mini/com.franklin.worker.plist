@@ -25,6 +25,9 @@
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     <key>NODE_ENV</key><string>production</string>
+    <!-- Ingest directly from OpenMHz instead of routing through Vercel adapter -->
+    <key>OPENMHZ_API_BASE_URL</key><string>https://openmhz.com</string>
+    <key>OPENMHZ_ADAPTER_BASE_URL</key><string></string>
   </dict>
 </dict>
 </plist>
